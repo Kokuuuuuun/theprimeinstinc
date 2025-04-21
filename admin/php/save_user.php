@@ -42,7 +42,7 @@ try {
     
     // Corrected table name from 'usuarios' to 'usuario'
     $sql = "INSERT INTO usuario (nombre, correo, contraseña) VALUES (?, ?, ?)";
-    $stmt = $connection->prepare($sql);
+    $stmt = $conexion->prepare($sql);
     
     if (!$stmt) {
         throw new Exception("Error en la preparación de la consulta: " . $conexion->error);
