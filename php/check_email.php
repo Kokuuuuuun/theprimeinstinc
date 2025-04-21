@@ -21,7 +21,7 @@ function checkDuplicateEmail($conexion, $email, $exclude_id = null) {
         
         $stmt = $conexion->prepare($sql);
         if (!$stmt) {
-            throw new Exception("Error en la preparación de la consulta: " . $connection->error);
+            throw new Exception("Error en la preparación de la consulta: " . $conexion->error);
         }
 
         $stmt->bind_param($types, ...$params);
