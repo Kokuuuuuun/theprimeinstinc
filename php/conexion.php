@@ -1,44 +1,75 @@
 <?php
-// Cargar variables de entorno desde .env si existe
-if (file_exists(__DIR__ . '/../.env')) {
-    $env = parse_ini_file(__DIR__ . '/../.env');
+// conexion.php
+
+// ===================================================
+// Configuración de entorno
+// ===================================================
+define('ENV_PATH', realpath(__DIR__ . '/../.env'));
+
+// Cargar variables de entorno
+if (file_exists(ENV_PATH)) {
+    $env = parse_ini_file(ENV_PATH, false, INI_SCANNER_TYPED);
+    
     foreach ($env as $key => $value) {
+        $_ENV[$key] = $value;
         putenv("$key=$value");
     }
 }
 
-// Usar variables de entorno o valores por defecto
-$host = getenv('DB_HOST') ?: '10.0.1.6';
-$usuario = getenv('DB_USER') ?: 'root';
-$password = getenv('DB_PASSWORD') ?: 'ONflEz9QYm64VDg9FdZqjeEQqanwhsxn31u1HTCHlX6dJh3OdPuWSHrA2lHTrXsV';
-$base_datos = getenv('DB_NAME') ?: 'prime';
+// ===================================================
+// Parámetros de conexión
+// ===================================================
+$db_config = [
+    'host' => $_ENV['DB_HOST'] ?? '10.0.1.6',
+    'user' => $_ENV['DB_USER'] ?? 'root',
+    'pass' => $_ENV['DB_PASSWORD'] ?? 'ONflEz9QYm64VDg9FdZqjeEQqanwhsxn31u1HTCHlX6dJh3OdPuWSHrA2lHTrXsV',
+    'db' => $_ENV['DB_NAME'] ?? 'prime',
+    'port' => $_ENV['DB_PORT'] ?? 3306,
+    'charset' => $_ENV['DB_CHARSET'] ?? 'utf8mb4'
+];
 
-// Intentar conexión a la base de datos
-$conexion = new mysqli($host, $usuario, $password, $base_datos); // <-- Usar variables definidas
-
-// Verificar errores de conexión
-if ($conexion->connect_error) { // <-- Corregido a $conexion
-    $errorLog = __DIR__ . '/../logs/db_error.log';
+// ===================================================
+// Establecer conexión
+// ===================================================
+try {
+    $conexion = new mysqli(
+        $db_config['host'],
+        $db_config['user'],
+        $db_config['pass'],
+        $db_config['db'],
+        $db_config['port']
+    );
     
-    // Asegurar que el directorio de logs existe
-    if (!file_exists(dirname($errorLog))) {
-        mkdir(dirname($errorLog), 0755, true);
+    if ($conexion->connect_errno) {
+        throw new RuntimeException("Error de conexión MySQL: " . $conexion->connect_error);
     }
     
-    $errorMessage = date('[Y-m-d H:i:s]') . " Error de conexión: " . $conexion->connect_error . "\n";
-    file_put_contents($errorLog, $errorMessage, FILE_APPEND);
-
-    // Redirección en producción
-    if (!getenv('DEBUG') || getenv('DEBUG') === 'false') {
-        header("Location: /diagnostico.php?error=db");
-        exit();
+    // Configurar charset
+    if (!$conexion->set_charset($db_config['charset'])) {
+        throw new RuntimeException("Error configurando charset: " . $conexion->error);
+    }
+    
+} catch (RuntimeException $e) {
+    // Manejo centralizado de errores
+    $error_message = date('[Y-m-d H:i:s]') . " " . $e->getMessage();
+    
+    // Registrar en archivo de log
+    error_log($error_message . PHP_EOL, 3, __DIR__ . '/../logs/db_errors.log');
+    
+    // Redirección segura en producción
+    if (!isset($_ENV['APP_DEBUG']) || $_ENV['APP_DEBUG'] !== 'true') {
+        header('HTTP/1.1 500 Internal Server Error');
+        header('Location: /error-db.php');
+        exit;
     } else {
-        die("Error de conexión: " . $conexion->connect_error);
+        die("<h2>Error de Desarrollo</h2><pre>{$e->getMessage()}</pre>");
     }
 }
 
-// Establecer charset (versión segura)
-if (!$conexion->set_charset("utf8mb4")) { // <-- Corregido a $conexion
-    $errorMessage = date('[Y-m-d H:i:s]') . " Error charset: " . $conexion->error . "\n";
-    file_put_contents($errorLog, $errorMessage, FILE_APPEND);
-}
+// ===================================================
+// Uso seguro de la conexión
+// ===================================================
+// Ejemplo de consulta preparada
+$stmt = $conexion->prepare("SELECT * FROM usuarios WHERE id = ?");
+$stmt->bind_param('i', $user_id);
+$stmt->execute();
