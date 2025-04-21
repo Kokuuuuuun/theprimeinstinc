@@ -1,9 +1,9 @@
 <?php
 require_once 'conexion.php';
 
-function checkDuplicateEmail($connection, $email, $exclude_id = null) {
+function checkDuplicateEmail($conexion, $email, $exclude_id = null) {
     // Verify connection
-    if (!$connection || $connection->connect_error) {
+    if (!$connection || $conexion->connect_error) {
         throw new Exception("Error de conexión a la base de datos");
     }
 
@@ -19,7 +19,7 @@ function checkDuplicateEmail($connection, $email, $exclude_id = null) {
             $types .= "i";
         }
         
-        $stmt = $connection->prepare($sql);
+        $stmt = $conexion->prepare($sql);
         if (!$stmt) {
             throw new Exception("Error en la preparación de la consulta: " . $connection->error);
         }
@@ -38,7 +38,7 @@ function checkDuplicateEmail($connection, $email, $exclude_id = null) {
 }
 
 // Make sure conexion.php exists and has the correct database configuration
-if (!isset($connection)) {
+if (!isset($conexion)) {
     die("Error: La conexión a la base de datos no está disponible");
 }
 ?>
