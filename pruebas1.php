@@ -1,4 +1,28 @@
 <?php
+// test-mysql.php
+$hosts = [
+    'qs0404k8swsk4wsc00osc0co', // Nombre del contenedor
+    'mysql',                     // Intento con alias genérico
+    '172.17.0.1'                // IP por defecto de Docker
+];
+
+foreach ($hosts as $host) {
+    try {
+        $mysqli = new mysqli(
+            $host,
+            'root',
+            'ONflEz9QYm64VDg',
+            'prime',
+            3306
+        );
+        
+        echo "✅ Conexión exitosa a $host\n";
+        $mysqli->close();
+    } catch (Exception $e) {
+        echo "❌ Fallo en $host: " . $e->getMessage() . "\n";
+    }
+}
+<?php
 // db-diagnostic.php
 // -------------------------------------------
 // Configuración (Editar según tu entorno)
