@@ -6,7 +6,7 @@
 
 $host = getenv('DB_HOST') ?: 'localhost';
 $usuario = getenv('DB_USER') ?: 'root';
-$password = getenv('DB_PASSWORD') ?: 'ONflEz9QYm64VDg9FdZqjeEQqanwhsxn31u1HTCHlX6dJh3OdPuWSHrA2lHTrXsV';
+$password = getenv('DB_PASSWORD') ?: '';
 $base_datos = getenv('DB_NAME') ?: 'prime';
 
 // Intentar conexión a la base de datos
