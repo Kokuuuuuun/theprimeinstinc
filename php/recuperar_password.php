@@ -15,7 +15,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt = $connection->prepare($sql);
 
         if (!$stmt) {
-            throw new Exception("Error en la preparación de la consulta: " . $connection->error);
+            throw new Exception("Error en la preparación de la consulta: " . $conexion->error);
         }
 
         $stmt->bind_param("s", $email);
@@ -34,7 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Almacenar el token en la base de datos
             $sql = "INSERT INTO password_reset (user_id, token, expiry, used) VALUES (?, ?, ?, 0)";
-            $stmt = $connection->prepare($sql);
+            $stmt = $conexion->prepare($sql);
 
             if (!$stmt) {
                 throw new Exception("Error en la preparación de la consulta: " . $connection->error);
