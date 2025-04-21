@@ -3,8 +3,7 @@ require_once 'conexion.php';
 require_once 'check_email.php';
 
 try {
-    // Verify connection is available
-    if (!isset($conexion) || $connection->connect_error) {
+    if (!isset($conexion) || $conexion->connect_error) {
         throw new Exception("Error de conexión a la base de datos");
     }
 
