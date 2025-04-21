@@ -45,7 +45,7 @@ if(isset($_POST['submitBtn'])) {
         if(move_uploaded_file($imagen["tmp_name"], $target_file)) {
             // Get old image to delete
             $sql = "SELECT imagen FROM productos WHERE id = ?";  // Corrigido nome da tabela e coluna
-            $stmt = mysqli_prepare($connection, $sql);
+            $stmt = mysqli_prepare($conexion, $sql);
             mysqli_stmt_bind_param($stmt, "i", $id);
             mysqli_stmt_execute($stmt);
             $result = mysqli_stmt_get_result($stmt);
@@ -53,7 +53,7 @@ if(isset($_POST['submitBtn'])) {
 
             // Update with new image
             $sql = "UPDATE productos SET nombre=?, descripcion=?, precio=?, imagen=? WHERE id=?";  // Corrigido nome da tabela e coluna
-            $stmt = mysqli_prepare($connection, $sql);
+            $stmt = mysqli_prepare($conexion, $sql);
             mysqli_stmt_bind_param($stmt, "ssdsi", $nombre, $descripcion, $precio, $target_file, $id);
 
             if(mysqli_stmt_execute($stmt)) {
@@ -67,7 +67,7 @@ if(isset($_POST['submitBtn'])) {
                 </script>";
             } else {
                 echo "<script>
-                    alert('Error al actualizar el producto: " . mysqli_error($connection) . "');
+                    alert('Error al actualizar el producto: " . mysqli_error($conexion) . "');
                     window.location.href = 'tienda-admin.php';
                 </script>";
             }
@@ -75,7 +75,7 @@ if(isset($_POST['submitBtn'])) {
     } else {
         // Update without changing image
         $sql = "UPDATE productos SET nombre=?, descripcion=?, precio=? WHERE id=?";  // Corrigido nome da tabela
-        $stmt = mysqli_prepare($connection, $sql);
+        $stmt = mysqli_prepare($conexion, $sql);
         mysqli_stmt_bind_param($stmt, "ssdi", $nombre, $descripcion, $precio, $id);
 
         if(mysqli_stmt_execute($stmt)) {
@@ -95,7 +95,7 @@ if(isset($_POST['submitBtn'])) {
         $id = $_GET['id'];
         
         $sql = "SELECT * FROM productos WHERE id = ?";
-        $stmt = mysqli_prepare($connection, $sql);
+        $stmt = mysqli_prepare($conexion, $sql);
         mysqli_stmt_bind_param($stmt, "i", $id);
         
         if (mysqli_stmt_execute($stmt)) {
@@ -122,5 +122,5 @@ if(isset($_POST['submitBtn'])) {
         exit();
     }
 }
-mysqli_close($connection);
+mysqli_close($conexion);
 ?>
