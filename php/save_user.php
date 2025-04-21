@@ -29,7 +29,7 @@ try {
     }
 
     // Check for duplicate email in the 'usuario' table
-    if (checkDuplicateEmail($connection, $email)) {
+    if (checkDuplicateEmail($conexion, $email)) {
         echo '<script>
             alert("Este correo electrónico ya está registrado");
             window.history.back();
@@ -42,10 +42,10 @@ try {
     
     // Corrected table name from 'usuarios' to 'usuario'
     $sql = "INSERT INTO usuario (nombre, correo, contraseña) VALUES (?, ?, ?)";
-    $stmt = $connection->prepare($sql);
+    $stmt = $conexion->prepare($sql);
     
     if (!$stmt) {
-        throw new Exception("Error en la preparación de la consulta: " . $connection->error);
+        throw new Exception("Error en la preparación de la consulta: " . $conexion->error);
     }
 
     $stmt->bind_param("sss", $nombre, $email, $hashed_password);
