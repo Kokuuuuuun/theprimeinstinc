@@ -24,7 +24,7 @@ if(!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
 
 // Check if email exists for other users
 $check_email = "SELECT COUNT(*) FROM usuario WHERE correo = ? AND id != ?";
-$stmt = mysqli_prepare($connection, $check_email);
+$stmt = mysqli_prepare($conexion, $check_email);
 mysqli_stmt_bind_param($stmt, "si", $correo, $id);
 mysqli_stmt_execute($stmt);
 mysqli_stmt_bind_result($stmt, $count);
@@ -43,11 +43,11 @@ if(!empty($password)) {
     }
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
     $sql = "UPDATE usuario SET nombre = ?, correo = ?, contraseña = ? WHERE id = ?";
-    $stmt = mysqli_prepare($connection, $sql);
+    $stmt = mysqli_prepare($conexion, $sql);
     mysqli_stmt_bind_param($stmt, "sssi", $nombre, $correo, $hashed_password, $id);
 } else {
     $sql = "UPDATE usuario SET nombre = ?, correo = ? WHERE id = ?";
-    $stmt = mysqli_prepare($connection, $sql);
+    $stmt = mysqli_prepare($conexion, $sql);
     mysqli_stmt_bind_param($stmt, "ssi", $nombre, $correo, $id);
 }
 
@@ -56,8 +56,8 @@ $success = mysqli_stmt_execute($stmt);
 if($success) {
     echo json_encode(['success' => true]);
 } else {
-    echo json_encode(['success' => false, 'error' => mysqli_error($connection)]);
+    echo json_encode(['success' => false, 'error' => mysqli_error($conexion)]);
 }
 
-mysqli_close($connection);
+mysqli_close($conexion);
 ?>

@@ -39,6 +39,10 @@ function check_database() {
         $usuario = getenv('DB_USER') ?: 'root';
         $password = getenv('DB_PASSWORD') ?: 'ONflEz9QYm64VDg9FdZqjeEQqanwhsxn31u1HTCHlX6dJh3OdPuWSHrA2lHTrXsV';
         $base_datos = getenv('DB_NAME') ?: 'prime';
+        $host = getenv('DB_HOST') ?: '10.0.1.6';
+        $usuario = getenv('DB_USER') ?: 'root';
+        $password = getenv('DB_PASSWORD') ?: 'ONflEz9QYm64VDg9FdZqjeEQqanwhsxn31u1HTCHlX6dJh3OdPuWSHrA2lHTrXsV';
+        $base_datos = getenv('DB_NAME') ?: 'prime';
 
         $connection = new mysqli($host, $usuario, $password, $base_datos);
 

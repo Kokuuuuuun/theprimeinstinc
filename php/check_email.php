@@ -1,44 +1,22 @@
 <?php
-require_once 'conexion.php';
+function checkDuplicateEmail($connetion, $email) {
+    $query = "SELECT id FROM usuario WHERE correo = ? LIMIT 1";
+    $stmt = $connetion->prepare($query);
 
-function checkDuplicateEmail($connection, $email, $exclude_id = null) {
-    // Verify connection
-    if (!$connection || $connection->connect_error) {
-        throw new Exception("Error de conexión a la base de datos");
+    if (!$stmt) {
+        throw new RuntimeException("Error en preparación: " . $connetion->error);
     }
 
-    try {
-        // Using 'usuario' instead of 'usuarios'
-        $sql = "SELECT id FROM usuario WHERE correo = ?";
-        $params = [$email];
-        $types = "s";
-        
-        if ($exclude_id) {
-            $sql .= " AND id != ?";
-            $params[] = $exclude_id;
-            $types .= "i";
-        }
-        
-        $stmt = $connection->prepare($sql);
-        if (!$stmt) {
-            throw new Exception("Error en la preparación de la consulta: " . $connection->error);
-        }
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
 
-        $stmt->bind_param($types, ...$params);
-        if (!$stmt->execute()) {
-            throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
-        }
+    // Almacenar resultados y limpiar buffer
+    $stmt->store_result();
+    $exists = $stmt->num_rows > 0;
 
-        $result = $stmt->get_result();
-        return $result->num_rows > 0;
+    // Limpieza explícita
+    $stmt->free_result();
+    $stmt->close();
 
-    } catch (Exception $e) {
-        throw new Exception("Error al verificar el correo: " . $e->getMessage());
-    }
+    return $exists;
 }
-
-// Make sure conexion.php exists and has the correct database configuration
-if (!isset($connection)) {
-    die("Error: La conexión a la base de datos no está disponible");
-}
-?>

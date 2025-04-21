@@ -1,52 +1,117 @@
 <?php
+// Session management
 session_start();
-include 'conexion.php';
+if (isset($_SESSION['user_id'])) {
+    header("Location: index-admin.php");
+    exit();
+}
+
+// Display validation error
+$error_message = '';
+if (isset($_GET['error'])) {
+    switch ($_GET['error']) {
+        case '1':
+            $error_message = 'Credenciales incorrectas';
+            break;
+        case '2':
+            $error_message = 'Error de conexión';
+            break;
+        default:
+            $error_message = 'Error desconocido';
+    }
+}
+
+// Database connectivity test
+$db_status = '';
+try {
+    if (!isset($connetion)) {
+        require_once 'conexion.php';
+    }
+
+    if ($connetion->connect_error) {
+        throw new Exception("Error de conexión: " . $connetion->connect_error);
+    }
+
+    // Check if the 'usuario' table exists and has data
+    $query = "SHOW TABLES LIKE 'usuario'";
+    $stmt = $connetion->prepare($query);
+
+    if (!$stmt) {
+        throw new Exception("Error en preparación: " . $connetion->error);
+    }
+
+    $stmt->execute();
+    $stmt->store_result();
+
+    if ($stmt->num_rows > 0) {
+        $db_status = 'conectado';
+    } else {
+        $db_status = 'sin tabla usuario';
+    }
+
+    $stmt->close();
+    $connetion->close();
+
+} catch (Exception $e) {
+    $db_status = 'error: ' . $e->getMessage();
+}
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = $_POST['correo'];
-    $password = $_POST['contraseña']; // No hagas hash aquí
-
-    if (!$connection) {
-        die("Connection failed: " . mysqli_connect_error());
-    }
-
-    // Primero obtén el usuario por correo
-    $query = "SELECT * FROM usuario WHERE correo=?";
-    $stmt = mysqli_prepare($connection, $query);
-    mysqli_stmt_bind_param($stmt, "s", $email);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-
-    if ($result && mysqli_num_rows($result) > 0) {
-        $row = mysqli_fetch_assoc($result);
-        // Verifica la contraseña
-        if (password_verify($password, $row['contraseña'])) {
-            $_SESSION['user_id'] = $row['id'];
-            $_SESSION['username'] = $row['nombre'];
-            $_SESSION['email'] = $row['correo'];
-
-            // Redirigir según el ID de usuario
-            if($row['id'] == 1) {
-                header("Location: ../admin/index.php");
-            } else {
-                header("Location: ../index.php");
-            }
-            exit();
-        } else {
-            echo "<script>
-                alert('Usuario o contraseña incorrectos. Por favor, verifique los datos.');
-                window.location = 'login-admin.php';
-            </script>";
-            exit();
+    try {
+        // Validar conexión
+        if ($connetion->connect_error) {
+            throw new Exception("Error de conexión: " . $connetion->connect_error);
         }
-    } else {
-        echo "<script>
-            alert('Usuario o contraseña incorrectos. Por favor, verifique los datos.');
-            window.location = 'login-admin.php';
-        </script>";
+
+        // Sanitizar inputs
+        $email = filter_input(INPUT_POST, 'correo', FILTER_SANITIZE_EMAIL);
+        $password = $_POST['contraseña'];
+
+        // Consulta preparada
+        $query = "SELECT id, nombre, contraseña FROM usuario WHERE correo = ? LIMIT 1";
+        $stmt = $connetion->prepare($query);
+
+        if (!$stmt) {
+            throw new Exception("Error en preparación: " . $connetion->error);
+        }
+
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+
+        // Manejar resultados
+        $result = $stmt->get_result();
+
+        if ($result->num_rows === 1) {
+            $row = $result->fetch_assoc();
+            $result->free();
+            $stmt->close();
+
+            if (password_verify($password, $row['contraseña'])) {
+                $_SESSION = [
+                    'user_id' => $row['id'],
+                    'username' => $row['nombre'],
+                    'email' => $email,
+                    'last_login' => time()
+                ];
+
+                header("Location: " . ($row['id'] == 1 ? '../admin/index.php' : '../index.php'));
+                exit();
+            }
+        }
+
+        throw new Exception("Credenciales inválidas");
+
+    } catch (Exception $e) {
+        if (isset($result)) $result->free();
+        if (isset($stmt)) $stmt->close();
+        $connetion->close();
+
+        echo '<script>
+            alert("Error: ' . addslashes($e->getMessage()) . '");
+            window.location.href = "login-admin.php";
+        </script>';
         exit();
     }
-    mysqli_stmt_close($stmt);
 }
 ?>
 
@@ -63,11 +128,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <form action="" method="POST">
             <div class="container">
                 <h1>Inicia sesión</h1>
-                <input class="input-w" type="text" id="email" name="correo" placeholder="Correo">
-                <input class="input-w" type="password" id="password" name="contraseña" placeholder="Contraseña">
+                <?php if ($error_message): ?>
+                    <p style="color:red;"><?php echo htmlspecialchars($error_message); ?></p>
+                <?php endif; ?>
+                <input class="input-w" type="text" id="email" name="correo" placeholder="Correo" required>
+                <input class="input-w" type="password" id="password" name="contraseña" placeholder="Contraseña" required>
                 <input class="l-button" type="submit" value="Inicia sesión">
                 <p>¿Olvidaste tu contraseña? <a href="recuperar_password.php">Recuperar contraseña</a></p>
                 <p>¿Aún no tienes una cuenta? <a href="register-admin.php">Regístrate</a></p>
+                <p>Estado de la base de datos: <?php echo htmlspecialchars($db_status); ?></p>
             </div>
         </form>
         <div class="container-img">

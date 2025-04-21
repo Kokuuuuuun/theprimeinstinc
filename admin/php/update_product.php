@@ -28,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $relative_path = "/theprimeinstinct/uploads/" . $newFileName;
         
         $sql = "UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, img = ? WHERE id = ?";
-        $stmt = mysqli_prepare($connection, $sql);
+        $stmt = mysqli_prepare($conexion, $sql);
         mysqli_stmt_bind_param($stmt, "ssdsi", $nombre, $descripcion, $precio, $relative_path, $id);
         
         if (mysqli_stmt_execute($stmt)) {

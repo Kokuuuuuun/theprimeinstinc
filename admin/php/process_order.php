@@ -9,12 +9,12 @@ if (!isset($_SESSION['user_id']) || !isset($_POST['nombre'])) {
 }
 
 // Recoger y sanitizar los datos del formulario
-$nombre = mysqli_real_escape_string($connection, $_POST['nombre']);
-$email = mysqli_real_escape_string($connection, $_POST['email']);
-$direccion = mysqli_real_escape_string($connection, $_POST['direccion']);
-$telefono = mysqli_real_escape_string($connection, $_POST['telefono']);
-$metodo_pago = mysqli_real_escape_string($connection, $_POST['metodo_pago']);
-$numero_tarjeta = ($metodo_pago === 'tarjeta') ? mysqli_real_escape_string($connection, $_POST['numero_tarjeta']) : '';
+$nombre = mysqli_real_escape_string($conexion, $_POST['nombre']);
+$email = mysqli_real_escape_string($conexion, $_POST['email']);
+$direccion = mysqli_real_escape_string($conexion, $_POST['direccion']);
+$telefono = mysqli_real_escape_string($conexion, $_POST['telefono']);
+$metodo_pago = mysqli_real_escape_string($conexion, $_POST['metodo_pago']);
+$numero_tarjeta = ($metodo_pago === 'tarjeta') ? mysqli_real_escape_string($conexion, $_POST['numero_tarjeta']) : '';
 $total = floatval($_POST['total']);
 
 // Preparar el string de productos
@@ -22,14 +22,14 @@ $productos_array = array();
 foreach ($_POST['productos'] as $producto) {
     $productos_array[] = $producto['nombre'] . ' (x' . $producto['cantidad'] . ')';
 }
-$productos = mysqli_real_escape_string($connection, implode(', ', $productos_array));
+$productos = mysqli_real_escape_string($conexion, implode(', ', $productos_array));
 
 // Preparar la consulta SQL
 $query = "INSERT INTO pedidos (nombre, email, direccion, telefono, producto, total, metodo_pago, numero_tarjeta) 
           VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
 // Preparar y ejecutar la consulta
-$stmt = mysqli_prepare($connection, $query);
+$stmt = mysqli_prepare($conexion, $query);
 mysqli_stmt_bind_param($stmt, "sssssdss", 
     $nombre,
     $email,
@@ -52,12 +52,12 @@ if (mysqli_stmt_execute($stmt)) {
 } else {
     // Mostrar mensaje de error
     echo "<script>
-        alert('Error al procesar el pedido: " . mysqli_error($connection) . "');
+        alert('Error al procesar el pedido: " . mysqli_error($conexion) . "');
         window.location.href = 'checkout.php';
     </script>";
 }
 
 // Cerrar la conexión
 mysqli_stmt_close($stmt);
-mysqli_close($connection);
+mysqli_close($conexion);
 ?>
