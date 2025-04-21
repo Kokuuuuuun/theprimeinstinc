@@ -4,13 +4,13 @@
 
 // Usar variables de entorno o valores por defecto para InfinityFree
 
-$host = getenv('DB_HOST') ?: 'localhost';
+$host = getenv('DB_HOST') ?: '10.0.1.6';
 $usuario = getenv('DB_USER') ?: 'root';
-$password = getenv('DB_PASSWORD') ?: '';
+$password = getenv('DB_PASSWORD') ?: 'ONflEz9QYm64VDg9FdZqjeEQqanwhsxn31u1HTCHlX6dJh3OdPuWSHrA2lHTrXsV';
 $base_datos = getenv('DB_NAME') ?: 'prime';
 
 // Intentar conexión a la base de datos
-$conexion = new mysqli('127.0.0.1', 'root', 'ONflEz9QYm64VDg9FdZqjeEQqanwhsxn31u1HTCHlX6dJh3OdPuWSHrA2lHTrXsV', 'prime');
+$conexion = new mysqli('10.0.1.6', 'root', 'ONflEz9QYm64VDg9FdZqjeEQqanwhsxn31u1HTCHlX6dJh3OdPuWSHrA2lHTrXsV', 'prime');
 
 // Verificar si hay errores de conexión
 if ($connection->connect_error) {
