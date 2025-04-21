@@ -1,6 +1,6 @@
 <?php
 $hosts = [
-    '10.0.1.6',        // IP en red coolify
+    '10.0.1.8',        // IP en red coolify
     'mysql',            // Nombre del servicio (si está en misma red)
     'qs0404k8swsk4wsc00osc0co'  // Nombre del contenedor
 ];
