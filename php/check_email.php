@@ -4,15 +4,17 @@ function checkDuplicateEmail($conexion, $email) {
     $stmt = $conexion->prepare($query);
     
     if (!$stmt) {
-        throw new Exception("Error en preparación: " . $conexion->error);
+        throw new RuntimeException("Error en preparación: " . $conexion->error);
     }
     
     $stmt->bind_param("s", $email);
     $stmt->execute();
     
-    // Almacenar resultados y liberar memoria
+    // Almacenar resultados y limpiar buffer
     $stmt->store_result();
     $exists = $stmt->num_rows > 0;
+    
+    // Limpieza explícita
     $stmt->free_result();
     $stmt->close();
     
