@@ -11,13 +11,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
     
-    $nombre = mysqli_real_escape_string($connection, $_POST['nombre']);
-    $descripcion = mysqli_real_escape_string($connection, $_POST['descripcion']);
+    $nombre = mysqli_real_escape_string($conexion, $_POST['nombre']);
+    $descripcion = mysqli_real_escape_string($conexion, $_POST['descripcion']);
     $precio = floatval($_POST['precio']);
     
     // Verificar si el producto ya existe
     $check_sql = "SELECT id FROM productos WHERE nombre = ?";
-    $check_stmt = mysqli_prepare($connection, $check_sql);
+    $check_stmt = mysqli_prepare($conexion, $check_sql);
     mysqli_stmt_bind_param($check_stmt, "s", $nombre);
     mysqli_stmt_execute($check_stmt);
     mysqli_stmt_store_result($check_stmt);
@@ -55,11 +55,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $relative_path = "/theprimeinstinct/uploads/" . $newFileName;
         
         $sql = "INSERT INTO productos (nombre, descripcion, precio, img) VALUES (?, ?, ?, ?)";
-        $stmt = mysqli_prepare($connection, $sql);
+        $stmt = mysqli_prepare($conexion, $sql);
 
         if(!$stmt) {
             echo "<script>
-                alert('Error en la preparación de la consulta: " . mysqli_error($connection) . "');
+                alert('Error en la preparación de la consulta: " . mysqli_error($conexion) . "');
                 window.location.href = 'tienda-admin.php';
             </script>";
             exit;
@@ -72,7 +72,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         if (mysqli_stmt_execute($stmt)) {
             mysqli_stmt_close($stmt);
-            mysqli_close($connection);
+            mysqli_close($conexion);
             echo "<script>
                 alert('Producto agregado correctamente');
                 window.location.href = 'tienda-admin.php';
@@ -80,7 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit;
         } else {
             echo "<script>
-                alert('Error al guardar en la base de datos: " . mysqli_error($connection) . "');
+                alert('Error al guardar en la base de datos: " . mysqli_error($conexion) . "');
                 window.location.href = 'tienda-admin.php';
             </script>";
         }
@@ -91,6 +91,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </script>";
     }
     
-    mysqli_close($connection);
+    mysqli_close($conexion);
 }
 ?>
