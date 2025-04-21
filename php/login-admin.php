@@ -6,7 +6,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['correo'];
     $password = $_POST['contraseña']; // No hagas hash aquí
 
-    if (!$connection) {
+    if (!$conexion) {
         die("Connection failed: " . mysqli_connect_error());
     }
 
