@@ -1,0 +1,480 @@
+@import url('https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Revalia&family=Sacramento&display=swap');
+
+:root{
+    --background-color: #F1F1F1;
+    --main-color: rgba(130, 127, 93, 0.83);
+    --second-color:rgba(68, 66, 46, 0.83);
+    --bright-text-color: #E8D740;
+    --bright-text-color2: #00EB3F;
+    --border-color:#454545;
+    --first-font: font-family: "sacramento", serif;
+    --second-font: font-family: "revalia", serif;
+    --third-font: font-family: "Kanit", serif;
+}
+
+*{
+    transition: 1000ms;
+}
+
+body{
+    background-color: var(--background-color);
+    margin: 0;
+    padding: 0;
+    font-family: var(--second-font);
+}
+
+/* estilos del menu */
+
+header {
+    display: flex;
+
+}
+
+.logo{
+    position: relative;
+    height: 80px;
+    width: 80px;
+    border-radius: 20px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.menu {
+    z-index: 10;
+    background-color: var(--background-color);
+    box-shadow: 5px 0px 5px 0px;
+    display: flex;
+    position: fixed;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 20px;
+    width: 100%;
+}
+
+.links {
+    flex: 10;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.link{
+    text-decoration: none;
+    color: black;
+    font-family: var(--second-font);
+    font-weight: 400;
+    font-style: normal;
+    font-size: 18px;
+}
+
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: white;
+    cursor: pointer;
+}
+
+.selected-link{
+    text-decoration: underline;
+    color: black;
+    font-family: var(--second-font);
+    font-weight: 400;
+    font-style: normal;
+    font-size: 18px;
+}
+
+.user-div {
+    display: none;
+    width: 300px;
+    height: 300px;
+    max-height: 400px;
+    background-color: white;
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 15px;
+    overflow-y: auto;
+}
+
+.user-div.user-div-active {
+    display: block;
+}
+
+.user {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 15px;
+}
+
+.user svg {
+    cursor: pointer;
+}
+
+.user {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.user-icon i {
+    font-size: 2.5rem;
+    color: var(--second-color);
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.user-icon:hover i {
+    color: var(--main-color);
+}
+
+.user-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 250px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    padding: 1.2rem;
+    z-index: 1000;
+}
+
+.user-dropdown.active {
+    display: block;
+    animation: dropdownFade 0.3s ease;
+}
+
+@keyframes dropdownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.user-info {
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.user-info .username {
+    display: block;
+    font-family: "kanit", serif;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--second-color);
+    margin-bottom: 8px;
+}
+
+.user-info .email {
+    display: block;
+    font-family: "kanit", serif;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.logout-btn {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    background-color: var(--main-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: "kanit", serif;
+    font-size: 0.9em;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    background-color: var(--second-color);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .user-dropdown {
+        width: 200px;
+        right: -10px;
+    }
+
+    .user-info .username {
+        font-size: 1em;
+    }
+
+    .user-info .email {
+        font-size: 0.8em;
+    }
+
+    .logout-btn {
+        padding: 8px 12px;
+        font-size: 0.8em;
+    }
+}
+
+
+
+/* estilos del body */
+
+main{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    margin: 130px 0px;
+}
+
+
+.filters{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-top: 20px;  
+}
+
+input{
+    border: 1px solid rgba(0, 0, 0, 0.47);
+    padding: 10px 30px;
+    font-size: 15px;
+    outline: none;
+    width: 400px;
+    border-radius: 5px;
+}
+
+.conexion{
+    display: none;
+}
+
+.search-icon{
+    position: relative;
+    font-size: 20px;
+    color: #000000c3;
+    left: 30px;
+    top: 5px;
+}
+
+.search-filter {
+    position: relative;
+    margin-right: 20px;
+}
+
+.search-filter input {
+    padding: 8px 35px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 250px;
+}
+
+.search-filter .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+}
+
+.admin-btn {
+    padding: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.47);
+    border-radius: 4px;
+    background-color: #ffffff;
+    cursor: pointer;
+}
+
+.users-table {
+    width: 90%;
+    margin: 30px auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #454545;
+}
+
+.status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.action-btn:hover {
+    background-color: #f0f0f0;
+}
+
+.edit {
+    color: #2196f3;
+}
+
+.delete {
+    color: #f44336;
+}
+
+/* Add transition for smooth hiding/showing of rows */
+.users-table tbody tr {
+    transition: all 0.3s ease;
+}
+
+/*modal*/
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    background-color: #ffffff;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.close {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    color: var(--second-color);
+    font-size: 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close:hover {
+    color: var(--main-color);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-family: "Kanit", serif;
+    font-weight: 500;
+    color: var(--second-color);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: "Kanit", serif;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+    border-color: var(--main-color);
+    outline: none;
+}
+
+.btn-submit {
+    background-color: var(--main-color);
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: "Kanit", serif;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.btn-submit:hover {
+    background-color: var(--second-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.form-group input.error {
+    border: 2px solid #ff6b6b;
+    background-color: #fff5f5;
+}
+
+.error-message {
+    color: #ff6b6b;
+    font-size: 13px;
+    margin-top: 5px;
+    font-family: "Kanit", serif;
+    display: none;
+}
+
+.error-message.show {
+    display: block;
+}

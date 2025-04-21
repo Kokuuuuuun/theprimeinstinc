@@ -1,0 +1,112 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Revalia&family=Sacramento&display=swap');
+
+:root{
+    --background-color: #F1F1F1;
+    --main-color: rgba(130, 127, 93, 0.83);
+    --second-color:rgba(68, 66, 46, 0.83);
+    --bright-text-color: #E8D740;
+    --bright-text-color2: #00EB3F;
+    --border-color:#454545;
+    --first-font: font-family: "sacramento", serif;
+    --second-font: font-family: "revalia", serif;
+    --third-font: font-family: "Kanit", serif;
+}
+
+*{
+    transition: 1000ms;
+}
+
+body{
+    background-color: var(--background-color);
+    margin: 0;
+    padding: 0;
+    font-family: "Kanit", serif;
+}
+
+/* body time  */
+
+.container-all{
+    flex-wrap: wrap;
+    margin: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+}
+
+.container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 550px;
+    height: 520px;
+    background-color: #FFFFFF;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.theimg{
+    width: 450px;
+    height: 550px;
+}
+
+h1{
+    font-family: "revalia", serif;
+    font-size: 30px;
+    font-weight: 400;
+}
+
+.inline{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.input-l{
+    font-size: 18px;
+    height: 40px;
+    margin: 10px 4px;
+    width: 185px;
+    border: 1px solid #454545;
+    border-radius: 5px;
+    padding: 5px 10px;
+}
+
+.input-w{
+    margin: 10px;
+    font-size: 18px;
+    height: 40px;
+    border: 1px solid #454545;
+    width: 400px;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.l-button{
+    margin: 10px;
+    font-size: 18px;
+    color: white;
+    height: 40px;
+    background-color: #44422E;
+    width: 420px;
+    border: 1px solid #454545;
+    font-family: "revalia", serif;
+    cursor: pointer;
+    transition: 200ms;
+}
+
+.l-button:hover{
+    background-color: #34322D;
+}
+
+a{
+    color: var(--main-color);
+    text-decoration: none;
+}
+
+input{
+    outline: none;
+}

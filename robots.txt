@@ -1,0 +1,13 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /php/
+Disallow: /src/
+Disallow: /uploads/
+Disallow: /logs/
+Disallow: /database/
+Disallow: /.env
+Disallow: /diagnostico.php
+
+# Permitir indexar páginas principales
+Allow: /index.php
+Allow: /
