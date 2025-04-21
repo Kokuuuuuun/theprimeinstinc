@@ -35,7 +35,7 @@ function check_extension($ext) {
 // Verificar conexión a la base de datos
 function check_database() {
     try {
-        $host = getenv('DB_HOST') ?: 'localhost';
+        $host = getenv('DB_HOST') ?: '10.0.1.6';
         $usuario = getenv('DB_USER') ?: 'root';
         $password = getenv('DB_PASSWORD') ?: 'ONflEz9QYm64VDg9FdZqjeEQqanwhsxn31u1HTCHlX6dJh3OdPuWSHrA2lHTrXsV';
         $base_datos = getenv('DB_NAME') ?: 'prime';
