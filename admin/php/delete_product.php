@@ -6,7 +6,7 @@ if(isset($_GET['id'])) {
 
     // Get image path before deleting
     $sql = "SELECT img FROM productos WHERE id = ?";  // Corrigido nome da tabela e coluna
-    $stmt = mysqli_prepare($conexion, $sql);
+    $stmt = mysqli_prepare($connection, $sql);
     mysqli_stmt_bind_param($stmt, "i", $id);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
@@ -14,7 +14,7 @@ if(isset($_GET['id'])) {
 
     // Delete from database
     $sql = "DELETE FROM productos WHERE id = ?";  // Corrigido nome da tabela
-    $stmt = mysqli_prepare($conexion, $sql);
+    $stmt = mysqli_prepare($connection, $sql);
     mysqli_stmt_bind_param($stmt, "i", $id);
 
     if(mysqli_stmt_execute($stmt)) {
@@ -28,7 +28,7 @@ if(isset($_GET['id'])) {
         </script>";
     } else {
         echo "<script>
-            alert('Error al eliminar el producto: " . mysqli_error($conexion) . "');
+            alert('Error al eliminar el producto: " . mysqli_error($connection) . "');
             window.location.href = 'tienda-admin.php';
         </script>";
     }
@@ -36,5 +36,5 @@ if(isset($_GET['id'])) {
     header("Location: tienda-admin.php");
 }
 
-mysqli_close($conexion);
+mysqli_close($connection);
 ?>

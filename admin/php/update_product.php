@@ -6,14 +6,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nombre = $_POST['nombre'];
     $descripcion = $_POST['descripcion'];
     $precio = $_POST['precio'];
-    
+
     // Handle image upload
     $target_dir = "../../uploads/";
     $imagen = $_FILES['imagen'];
     $imageFileType = strtolower(pathinfo($imagen['name'], PATHINFO_EXTENSION));
     $newFileName = uniqid() . '.' . $imageFileType;
     $target_file = $target_dir . $newFileName;
-    
+
     // Validate image
     $valid_types = array('jpg', 'jpeg', 'png', 'gif');
     if (!in_array($imageFileType, $valid_types)) {
@@ -23,14 +23,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </script>";
         exit;
     }
-    
+
     if (move_uploaded_file($imagen["tmp_name"], $target_file)) {
         $relative_path = "/theprimeinstinct/uploads/" . $newFileName;
-        
+
         $sql = "UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, img = ? WHERE id = ?";
-        $stmt = mysqli_prepare($conexion, $sql);
+        $stmt = mysqli_prepare($connection, $sql);
         mysqli_stmt_bind_param($stmt, "ssdsi", $nombre, $descripcion, $precio, $relative_path, $id);
-        
+
         if (mysqli_stmt_execute($stmt)) {
             echo "<script>
                 alert('Producto actualizado correctamente');
@@ -48,7 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             window.location.href = 'tienda-admin.php';
         </script>";
     }
-    
+
     mysqli_close($connection);
 }
 ?>

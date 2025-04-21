@@ -32,7 +32,7 @@ $db_config = [
 // Establecer conexión
 // ===================================================
 try {
-    $connetion = new mysqli(
+    $connection = new mysqli(
         $db_config['host'],
         $db_config['user'],
         $db_config['pass'],
@@ -40,13 +40,13 @@ try {
         $db_config['port']
     );
 
-    if ($connetion->connect_errno) {
-        throw new RuntimeException("Error de conexión MySQL: " . $connetion->connect_error);
+    if ($connection->connect_errno) {
+        throw new RuntimeException("Error de conexión MySQL: " . $connection->connect_error);
     }
 
     // Configurar charset
-    if (!$connetion->set_charset($db_config['charset'])) {
-        throw new RuntimeException("Error configurando charset: " . $connetion->error);
+    if (!$connection->set_charset($db_config['charset'])) {
+        throw new RuntimeException("Error configurando charset: " . $connection->error);
     }
 
 } catch (RuntimeException $e) {

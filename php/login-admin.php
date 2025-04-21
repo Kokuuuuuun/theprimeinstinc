@@ -24,20 +24,20 @@ if (isset($_GET['error'])) {
 // Database connectivity test
 $db_status = '';
 try {
-    if (!isset($connetion)) {
+    if (!isset($connection)) {
         require_once 'conexion.php';
     }
 
-    if ($connetion->connect_error) {
-        throw new Exception("Error de conexión: " . $connetion->connect_error);
+    if ($connection->connect_error) {
+        throw new Exception("Error de conexión: " . $connection->connect_error);
     }
 
     // Check if the 'usuario' table exists and has data
     $query = "SHOW TABLES LIKE 'usuario'";
-    $stmt = $connetion->prepare($query);
+    $stmt = $connection->prepare($query);
 
     if (!$stmt) {
-        throw new Exception("Error en preparación: " . $connetion->error);
+        throw new Exception("Error en preparación: " . $connection->error);
     }
 
     $stmt->execute();
@@ -50,7 +50,7 @@ try {
     }
 
     $stmt->close();
-    $connetion->close();
+    $connection->close();
 
 } catch (Exception $e) {
     $db_status = 'error: ' . $e->getMessage();
@@ -59,73 +59,69 @@ try {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
         // Validar conexión
-        if ($connetion->connect_error) {
-            throw new Exception("Error de conexión: " . $connetion->connect_error);
+        if ($connection->connect_error) {
+            throw new Exception("Error de conexión: " . $connection->connect_error);
         }
 
-        // Sanitizar inputs
-        $email = filter_input(INPUT_POST, 'correo', FILTER_SANITIZE_EMAIL);
-        $password = $_POST['contraseña'];
+        $correo = $_POST['correo'] ?? '';
+        $password = $_POST['contraseña'] ?? '';
 
-        // Consulta preparada
+        // Validar credenciales
         $query = "SELECT id, nombre, contraseña FROM usuario WHERE correo = ? LIMIT 1";
-        $stmt = $connetion->prepare($query);
+        $stmt = $connection->prepare($query);
 
         if (!$stmt) {
-            throw new Exception("Error en preparación: " . $connetion->error);
+            throw new Exception("Error en preparación: " . $connection->error);
         }
 
-        $stmt->bind_param("s", $email);
+        $stmt->bind_param("s", $correo);
         $stmt->execute();
-
-        // Manejar resultados
         $result = $stmt->get_result();
 
         if ($result->num_rows === 1) {
-            $row = $result->fetch_assoc();
-            $result->free();
-            $stmt->close();
+            $usuario = $result->fetch_assoc();
 
-            if (password_verify($password, $row['contraseña'])) {
-                $_SESSION = [
-                    'user_id' => $row['id'],
-                    'username' => $row['nombre'],
-                    'email' => $email,
-                    'last_login' => time()
-                ];
+            if (password_verify($password, $usuario['contraseña'])) {
+                // Login success
+                $_SESSION['user_id'] = $usuario['id'];
+                $_SESSION['username'] = $usuario['nombre'];
+                $_SESSION['email'] = $correo;
 
-                header("Location: " . ($row['id'] == 1 ? '../admin/index.php' : '../index.php'));
+                header("Location: index-admin.php");
                 exit();
             }
         }
 
-        throw new Exception("Credenciales inválidas");
+        // Invalid credentials
+        header("Location: login-admin.php?error=1");
+        exit();
 
     } catch (Exception $e) {
-        if (isset($result)) $result->free();
-        if (isset($stmt)) $stmt->close();
-        $connetion->close();
-
-        echo '<script>
-            alert("Error: ' . addslashes($e->getMessage()) . '");
-            window.location.href = "login-admin.php";
-        </script>';
+        header("Location: login-admin.php?error=2");
         exit();
+    } finally {
+        // Clean up
+        if (isset($stmt)) $stmt->close();
+        $connection->close();
+
     }
 }
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../src/css/login-admin.css">
-    <title>Inicio de sesión</title>
+    <title>Inicia sesión</title>
 </head>
 <body>
     <div class="container-all">
-        <form action="" method="POST">
+        <div class="container-img">
+            <img class="theimg" src="../img/loginimg.jpg" alt="limg">
+        </div>
+        <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
             <div class="container">
                 <h1>Inicia sesión</h1>
                 <?php if ($error_message): ?>
@@ -134,16 +130,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <input class="input-w" type="text" id="email" name="correo" placeholder="Correo" required>
                 <input class="input-w" type="password" id="password" name="contraseña" placeholder="Contraseña" required>
                 <input class="l-button" type="submit" value="Inicia sesión">
-                <p>¿Olvidaste tu contraseña? <a href="recuperar_password.php">Recuperar contraseña</a></p>
+                <p>¿Olvidaste la contraseña? <a href="recuperar_password.php">Recuperar</a></p>
                 <p>¿Aún no tienes una cuenta? <a href="register-admin.php">Regístrate</a></p>
                 <p>Estado de la base de datos: <?php echo htmlspecialchars($db_status); ?></p>
             </div>
         </form>
-        <div class="container-img">
-            <img class="theimg" src="../img/loginimg.jpg" alt="limg">
-        </div>
     </div>
     <a href="manual.php" class="manual-btn">Manual de Usuario</a>
 </body>
-<script src="../src/js/login-admin.js"></script>
 </html>

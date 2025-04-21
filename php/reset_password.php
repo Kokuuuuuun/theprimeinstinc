@@ -18,10 +18,10 @@ if (!empty($token)) {
                 JOIN usuario u ON pr.user_id = u.id
                 WHERE pr.token = ? AND pr.expiry > ? AND pr.used = 0";
 
-        $stmt = $connetion->prepare($sql);
+        $stmt = $connection->prepare($sql);
 
         if (!$stmt) {
-            throw new Exception("Error en la preparación de la consulta: " . $connetion->error);
+            throw new Exception("Error en la preparación de la consulta: " . $connection->error);
         }
 
         $stmt->bind_param("ss", $token, $current_time);
@@ -67,10 +67,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $token_valid) {
 
             // Actualizar la contraseña del usuario
             $sql = "UPDATE usuario SET contraseña = ? WHERE id = ?";
-            $stmt = $connetion->prepare($sql);
+            $stmt = $connection->prepare($sql);
 
             if (!$stmt) {
-                throw new Exception("Error en la preparación de la consulta: " . $connetion->error);
+                throw new Exception("Error en la preparación de la consulta: " . $connection->error);
             }
 
             $stmt->bind_param("si", $hashed_password, $user_id);
@@ -81,10 +81,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $token_valid) {
 
                 // Marcar el token como usado
                 $sql = "UPDATE password_reset SET used = 1 WHERE id = ?";
-                $update_stmt = $connetion->prepare($sql);
+                $update_stmt = $connection->prepare($sql);
 
                 if (!$update_stmt) {
-                    throw new Exception("Error en la preparación de la consulta: " . $connetion->error);
+                    throw new Exception("Error en la preparación de la consulta: " . $connection->error);
                 }
 
                 $update_stmt->bind_param("i", $reset_id);

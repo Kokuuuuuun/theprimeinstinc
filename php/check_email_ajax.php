@@ -5,7 +5,7 @@ require_once 'check_email.php';
 $email = $_GET['email'] ?? '';
 $exclude_id = $_GET['exclude_id'] ?? null;
 
-$exists = checkDuplicateEmail($connetion, $email, $exclude_id);
+$exists = checkDuplicateEmail($connection, $email, $exclude_id);
 
 header('Content-Type: application/json');
 echo json_encode(['exists' => $exists]);

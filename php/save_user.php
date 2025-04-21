@@ -6,7 +6,7 @@ require_once 'check_email.php';
 $nonce = base64_encode(random_bytes(16));
 
 try {
-    if (!isset($connetion) || $connetion->connect_error) {
+    if (!isset($connection) || $connection->connect_error) {
         throw new Exception("Error de conexión a la base de datos");
     }
 
@@ -40,8 +40,8 @@ try {
     }
 
     // Verificar email duplicado
-    if (checkDuplicateEmail($connetion, $email)) {
-        $connetion->close();
+    if (checkDuplicateEmail($connection, $email)) {
+        $connection->close();
         echo '<script nonce="'.$nonce.'">
             alert("Este correo electrónico ya está registrado");
             window.history.back();
@@ -53,14 +53,14 @@ try {
     $hashed_password = password_hash($password, PASSWORD_ARGON2ID, ['memory_cost' => 1<<17, 'time_cost' => 4, 'threads' => 2]);
 
     // Transacción para integridad de datos
-    $connetion->begin_transaction();
+    $connection->begin_transaction();
 
     try {
         $sql = "INSERT INTO usuario (nombre, correo, contraseña) VALUES (?, ?, ?)";
-        $stmt = $connetion->prepare($sql);
+        $stmt = $connection->prepare($sql);
 
         if (!$stmt) {
-            throw new Exception("Error en preparación: " . $connetion->error);
+            throw new Exception("Error en preparación: " . $connection->error);
         }
 
         $stmt->bind_param("sss", $nombre, $email, $hashed_password);
@@ -68,7 +68,7 @@ try {
         // Ejecutar la consulta
         $stmt->execute();
 
-        $connetion->commit();
+        $connection->commit();
 
         echo '<script nonce="'.$nonce.'">
             alert("Usuario registrado correctamente");
@@ -76,13 +76,13 @@ try {
         </script>';
 
     } catch (Exception $e) {
-        $connetion->rollback();
+        $connection->rollback();
         throw $e;
     } finally {
         if (isset($stmt)) {
             $stmt->close();
         }
-        $connetion->close();
+        $connection->close();
     }
 
 } catch (Exception $e) {

@@ -10,20 +10,9 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Crear la conexión directamente en este archivo
-// Reemplaza estos valores con los de tu configuración
-$servidor = "localhost";
-$usuario = "root";  // Usuario por defecto en XAMPP
-$password = "";     // Contraseña por defecto en XAMPP (vacía)
-$base_datos = "prime"; // Reemplaza con el nombre de tu base de datos
+// Incluir el archivo de conexión en lugar de crear una nueva
+include("conexion.php");
 
-// Crear conexión
-$conexion = mysqli_connect($servidor, $usuario, $password, $base_datos);
-
-// Verificar si la conexión fue exitosa
-if (!$conexion) {
-    die("Error de conexión: " . mysqli_connect_error());
-}
 // Variables para almacenar totales
 $total_usuarios = 0;
 $total_productos = 0;
@@ -33,40 +22,40 @@ $total_pedidos = 0;
 try {
     // Obtener total de usuarios
     $total_usuarios = 0;
-    if ($result = mysqli_query($conexion, "SELECT COUNT(*) as total FROM usuario")) {
+    if ($result = mysqli_query($connection, "SELECT COUNT(*) as total FROM usuario")) {
         $row = mysqli_fetch_assoc($result);
         $total_usuarios = $row['total'];
         mysqli_free_result($result);
     }
-    
+
     // Obtener total de productos
     $total_productos = 0;
-    if ($result = mysqli_query($conexion, "SELECT COUNT(*) as total FROM productos")) {
+    if ($result = mysqli_query($connection, "SELECT COUNT(*) as total FROM productos")) {
         $row = mysqli_fetch_assoc($result);
         $total_productos = $row['total'];
         mysqli_free_result($result);
     }
-    
+
     // Obtener total de pedidos
     $total_pedido = 0;
-    if ($result = mysqli_query($conexion, "SELECT COUNT(*) as total FROM pedidos")) {
+    if ($result = mysqli_query($connection, "SELECT COUNT(*) as total FROM pedidos")) {
         $row = mysqli_fetch_assoc($result);
         $total_pedido = $row['total'];
         mysqli_free_result($result);
     }
-    
+
     // Obtener pedidos recientes
     $pedidos_recientes = null;
     try {
         $query_pedidos = "SELECT * FROM pedidos ORDER BY id DESC LIMIT 5";
-        $pedidos_recientes = mysqli_query($conexion, $query_pedidos);
+        $pedidos_recientes = mysqli_query($connection, $query_pedidos);
         if (!$pedidos_recientes) {
-            throw new Exception("Error al obtener pedidos recientes: " . mysqli_error($conexion));
+            throw new Exception("Error al obtener pedidos recientes: " . mysqli_error($connection));
         }
     } catch (Exception $e) {
         echo "Error: " . $e->getMessage();
     }
-    
+
 } catch (Exception $e) {
     echo "Error en las consultas: " . $e->getMessage();
 }
@@ -150,9 +139,9 @@ try {
                     </tr>
                 </thead>
                 <tbody>
-                    <?php 
+                    <?php
                     if ($pedidos_recientes && mysqli_num_rows($pedidos_recientes) > 0) {
-                        while($pedido = mysqli_fetch_assoc($pedidos_recientes)) { 
+                        while($pedido = mysqli_fetch_assoc($pedidos_recientes)) {
                     ?>
                         <tr>
                             <td><?php echo $pedido['id']; ?></td>
@@ -164,7 +153,7 @@ try {
                             <td>$<?php echo $pedido['total']; ?></td>
                             <td><?php echo $pedido['fecha']; ?></td>
                         </tr>
-                    <?php 
+                    <?php
                         }
                     } else {
                         echo "<tr><td colspan='8'>No hay pedidos recientes</td></tr>";

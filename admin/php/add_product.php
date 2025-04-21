@@ -10,18 +10,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </script>";
         exit;
     }
-    
-    $nombre = mysqli_real_escape_string($conexion, $_POST['nombre']);
-    $descripcion = mysqli_real_escape_string($conexion, $_POST['descripcion']);
+
+    $nombre = mysqli_real_escape_string($connection, $_POST['nombre']);
+    $descripcion = mysqli_real_escape_string($connection, $_POST['descripcion']);
     $precio = floatval($_POST['precio']);
-    
+
     // Verificar si el producto ya existe
     $check_sql = "SELECT id FROM productos WHERE nombre = ?";
-    $check_stmt = mysqli_prepare($conexion, $check_sql);
+    $check_stmt = mysqli_prepare($connection, $check_sql);
     mysqli_stmt_bind_param($check_stmt, "s", $nombre);
     mysqli_stmt_execute($check_stmt);
     mysqli_stmt_store_result($check_stmt);
-    
+
     if(mysqli_stmt_num_rows($check_stmt) > 0) {
         echo "<script>
             alert('Ya existe un producto con ese nombre');
@@ -29,18 +29,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </script>";
         exit;
     }
-    
+
     // Handle image upload
     $target_dir = "../../uploads/";
     if (!file_exists($target_dir)) {
         mkdir($target_dir, 0777, true);
     }
-    
+
     $imagen = $_FILES['imagen'];
     $imageFileType = strtolower(pathinfo($imagen['name'], PATHINFO_EXTENSION));
     $newFileName = uniqid() . '.' . $imageFileType;
     $target_file = $target_dir . $newFileName;
-    
+
     // Validate image
     $valid_types = array('jpg', 'jpeg', 'png', 'gif');
     if (!in_array($imageFileType, $valid_types)) {
@@ -50,16 +50,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </script>";
         exit;
     }
-    
+
     if (move_uploaded_file($imagen["tmp_name"], $target_file)) {
         $relative_path = "/theprimeinstinct/uploads/" . $newFileName;
-        
+
         $sql = "INSERT INTO productos (nombre, descripcion, precio, img) VALUES (?, ?, ?, ?)";
-        $stmt = mysqli_prepare($conexion, $sql);
+        $stmt = mysqli_prepare($connection, $sql);
 
         if(!$stmt) {
             echo "<script>
-                alert('Error en la preparación de la consulta: " . mysqli_error($conexion) . "');
+                alert('Error en la preparación de la consulta: " . mysqli_error($connection) . "');
                 window.location.href = 'tienda-admin.php';
             </script>";
             exit;
@@ -69,10 +69,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // ALTER TABLE productos ADD UNIQUE (nombre);
 
         mysqli_stmt_bind_param($stmt, "ssds", $nombre, $descripcion, $precio, $relative_path);
-        
+
         if (mysqli_stmt_execute($stmt)) {
             mysqli_stmt_close($stmt);
-            mysqli_close($conexion);
+            mysqli_close($connection);
             echo "<script>
                 alert('Producto agregado correctamente');
                 window.location.href = 'tienda-admin.php';
@@ -80,7 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit;
         } else {
             echo "<script>
-                alert('Error al guardar en la base de datos: " . mysqli_error($conexion) . "');
+                alert('Error al guardar en la base de datos: " . mysqli_error($connection) . "');
                 window.location.href = 'tienda-admin.php';
             </script>";
         }
@@ -90,7 +90,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             window.location.href = 'tienda-admin.php';
         </script>";
     }
-    
-    mysqli_close($conexion);
+
+    mysqli_close($connection);
 }
 ?>

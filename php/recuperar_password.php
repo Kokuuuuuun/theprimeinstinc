@@ -12,10 +12,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Verificar que el email existe en la base de datos
     try {
         $sql = "SELECT id, nombre FROM usuario WHERE correo = ?";
-        $stmt = $connetion->prepare($sql);
+        $stmt = $connection->prepare($sql);
 
         if (!$stmt) {
-            throw new Exception("Error en la preparación de la consulta: " . $connetion->error);
+            throw new Exception("Error en la preparación de la consulta: " . $connection->error);
         }
 
         $stmt->bind_param("s", $email);
@@ -38,10 +38,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Almacenar el token en la base de datos
             $sql = "INSERT INTO password_reset (user_id, token, expiry, used) VALUES (?, ?, ?, 0)";
-            $stmt = $connetion->prepare($sql);
+            $stmt = $connection->prepare($sql);
 
             if (!$stmt) {
-                throw new Exception("Error en la preparación de la consulta: " . $connetion->error);
+                throw new Exception("Error en la preparación de la consulta: " . $connection->error);
             }
 
             $stmt->bind_param("iss", $user_id, $token, $expiry);

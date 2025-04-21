@@ -7,7 +7,7 @@ $hosts = [
 
 foreach ($hosts as $host) {
     try {
-        $connetion = new mysqli(
+        $connection = new mysqli(
             $host,
             'root',
             'ONflEz9QYm64VDg',
@@ -16,7 +16,7 @@ foreach ($hosts as $host) {
         );
 
         echo "✅ Conexión exitosa con: $host";
-        $connetion->close();
+        $connection->close();
         exit;
 
     } catch (Exception $e) {

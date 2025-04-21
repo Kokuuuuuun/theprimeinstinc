@@ -3,11 +3,11 @@ session_start();
 require_once("conexion.php");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = mysqli_real_escape_string($connetion, $_POST['correo']);
+    $email = mysqli_real_escape_string($connection, $_POST['correo']);
     $password = $_POST['contraseña'];
 
     $sql = "SELECT * FROM usuario WHERE correo = ?";
-    $stmt = mysqli_prepare($connetion, $sql);
+    $stmt = mysqli_prepare($connection, $sql);
     mysqli_stmt_bind_param($stmt, "s", $email);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
