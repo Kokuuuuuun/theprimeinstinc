@@ -2,21 +2,33 @@
 require_once 'conexion.php';
 require_once 'check_email.php';
 
+// Generar nonce para CSP (debes implementar un sistema para generarlo y pasarlo a la vista)
+$nonce = base64_encode(random_bytes(16));
+
 try {
-    // Validar conexión activa
     if (!isset($conexion) || $conexion->connect_error) {
         throw new Exception("Error de conexión a la base de datos");
     }
 
-    // Recibir y sanitizar datos
-    $nombre = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
+    // Sanitización moderna y validación
+    $nombre = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
     $password = $_POST['password'] ?? '';
     $confirmPassword = $_POST['confirmPassword'] ?? '';
 
-    // Validaciones
+    // Validación de campos
     if (empty($nombre) || empty($email) || empty($password)) {
         throw new Exception("Todos los campos son obligatorios");
+    }
+
+    // Validación de formato de email
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        throw new Exception("Formato de correo electrónico inválido");
+    }
+
+    // Validación de nombre (permite letras, espacios y acentos)
+    if (!preg_match("/^[\p{L}\s]{2,50}$/u", $nombre)) {
+        throw new Exception("El nombre solo puede contener letras y espacios (2-50 caracteres)");
     }
 
     if (strlen($password) < 6) {
@@ -30,44 +42,47 @@ try {
     // Verificar email duplicado
     if (checkDuplicateEmail($conexion, $email)) {
         $conexion->close();
-        echo '<script>
+        echo '<script nonce="'.$nonce.'">
             alert("Este correo electrónico ya está registrado");
             window.history.back();
         </script>';
         exit();
     }
 
-    // Hash de contraseña
-    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+    // Hash seguro con coste personalizado
+    $hashed_password = password_hash($password, PASSWORD_ARGON2ID, ['memory_cost' => 1<<17, 'time_cost' => 4, 'threads' => 2]);
 
-    // Insertar usuario
-    $sql = "INSERT INTO usuario (nombre, correo, contraseña) VALUES (?, ?, ?)";
-    $stmt = $conexion->prepare($sql);
-    
-    if (!$stmt) {
-        throw new Exception("Error en preparación: " . $conexion->error);
-    }
+    // Transacción para integridad de datos
+    $conexion->begin_transaction();
 
-    $stmt->bind_param("sss", $nombre, $email, $hashed_password);
-    
-    if ($stmt->execute()) {
-        $last_id = $conexion->insert_id;
-        $stmt->close();
-        $conexion->close();
+    try {
+        $sql = "INSERT INTO usuario (nombre, correo, contraseña) VALUES (?, ?, ?)";
+        $stmt = $conexion->prepare($sql);
         
-        echo '<script>
+        if (!$stmt) {
+            throw new Exception("Error en preparación: " . $conexion->error);
+        }
+
+        $stmt->bind_param("sss", $nombre, $email, $hashed_password);
+        $stmt->execute();
+        
+        $conexion->commit();
+        
+        echo '<script nonce="'.$nonce.'">
             alert("Usuario registrado correctamente");
             window.location.href = "login-admin.php";
         </script>';
-    } else {
-        throw new Exception("Error al registrar: " . $stmt->error);
+
+    } catch (Exception $e) {
+        $conexion->rollback();
+        throw $e;
+    } finally {
+        if (isset($stmt)) $stmt->close();
+        $conexion->close();
     }
 
 } catch (Exception $e) {
-    if (isset($stmt)) $stmt->close();
-    if (isset($conexion)) $conexion->close();
-    
-    echo '<script>
+    echo '<script nonce="'.$nonce.'">
         alert("Error: ' . addslashes($e->getMessage()) . '");
         window.history.back();
     </script>';
