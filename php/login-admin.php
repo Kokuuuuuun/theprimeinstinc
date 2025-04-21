@@ -61,4 +61,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 ?>
 
-<!-- El resto del HTML permanece igual -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../src/css/login-admin.css">
+    <title>Inicio de sesión</title>
+</head>
+<body>
+    <div class="container-all">
+        <form action="" method="POST">
+            <div class="container">
+                <h1>Inicia sesión</h1>
+                <input class="input-w" type="text" id="email" name="correo" placeholder="Correo">
+                <input class="input-w" type="password" id="password" name="contraseña" placeholder="Contraseña">
+                <input class="l-button" type="submit" value="Inicia sesión">
+                <p>¿Olvidaste tu contraseña? <a href="recuperar_password.php">Recuperar contraseña</a></p>
+                <p>¿Aún no tienes una cuenta? <a href="register-admin.php">Regístrate</a></p>
+            </div>
+        </form>
+        <div class="container-img">
+            <img class="theimg" src="../img/loginimg.jpg" alt="limg">
+        </div>
+    </div>
+    <a href="manual.php" class="manual-btn">Manual de Usuario</a>
+</body>
+<script src="../src/js/login-admin.js"></script>
+</html>
