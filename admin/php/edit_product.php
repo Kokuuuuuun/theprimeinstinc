@@ -85,7 +85,7 @@ if(isset($_POST['submitBtn'])) {
             </script>";
         } else {
             echo "<script>
-                alert('Error al actualizar el producto: " . mysqli_error($connection) . "');
+                alert('Error al actualizar el producto: " . mysqli_error($conexion) . "');
                 window.location.href = 'tienda-admin.php';
             </script>";
         }
