@@ -7,18 +7,18 @@ $hosts = [
 
 foreach ($hosts as $host) {
     try {
-        $conexion = new mysqli(
+        $connetion = new mysqli(
             $host,
             'root',
             'ONflEz9QYm64VDg',
             'prime',
             3306
         );
-        
+
         echo "✅ Conexión exitosa con: $host";
-        $conexion->close();
+        $connetion->close();
         exit;
-        
+
     } catch (Exception $e) {
         echo "❌ Fallo en $host: " . $e->getMessage() . "\n";
     }

@@ -1,12 +1,66 @@
 <?php
+// Session management
 session_start();
-require 'conexion.php';
+if (isset($_SESSION['user_id'])) {
+    header("Location: index-admin.php");
+    exit();
+}
+
+// Display validation error
+$error_message = '';
+if (isset($_GET['error'])) {
+    switch ($_GET['error']) {
+        case '1':
+            $error_message = 'Credenciales incorrectas';
+            break;
+        case '2':
+            $error_message = 'Error de conexión';
+            break;
+        default:
+            $error_message = 'Error desconocido';
+    }
+}
+
+// Database connectivity test
+$db_status = '';
+try {
+    if (!isset($connetion)) {
+        require_once 'conexion.php';
+    }
+
+    if ($connetion->connect_error) {
+        throw new Exception("Error de conexión: " . $connetion->connect_error);
+    }
+
+    // Check if the 'usuario' table exists and has data
+    $query = "SHOW TABLES LIKE 'usuario'";
+    $stmt = $connetion->prepare($query);
+
+    if (!$stmt) {
+        throw new Exception("Error en preparación: " . $connetion->error);
+    }
+
+    $stmt->execute();
+    $stmt->store_result();
+
+    if ($stmt->num_rows > 0) {
+        $db_status = 'conectado';
+    } else {
+        $db_status = 'sin tabla usuario';
+    }
+
+    $stmt->close();
+    $connetion->close();
+
+} catch (Exception $e) {
+    $db_status = 'error: ' . $e->getMessage();
+}
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
         // Validar conexión
-        if ($conexion->connect_error) {
-            throw new Exception("Error de conexión: " . $conexion->connect_error);
+        if ($connetion->connect_error) {
+            throw new Exception("Error de conexión: " . $connetion->connect_error);
         }
 
         // Sanitizar inputs
@@ -15,23 +69,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Consulta preparada
         $query = "SELECT id, nombre, contraseña FROM usuario WHERE correo = ? LIMIT 1";
-        $stmt = $conexion->prepare($query);
-        
+        $stmt = $connetion->prepare($query);
+
         if (!$stmt) {
-            throw new Exception("Error en preparación: " . $conexion->error);
+            throw new Exception("Error en preparación: " . $connetion->error);
         }
 
         $stmt->bind_param("s", $email);
         $stmt->execute();
-        
+
         // Manejar resultados
         $result = $stmt->get_result();
-        
+
         if ($result->num_rows === 1) {
             $row = $result->fetch_assoc();
             $result->free();
             $stmt->close();
-            
+
             if (password_verify($password, $row['contraseña'])) {
                 $_SESSION = [
                     'user_id' => $row['id'],
@@ -39,7 +93,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     'email' => $email,
                     'last_login' => time()
                 ];
-                
+
                 header("Location: " . ($row['id'] == 1 ? '../admin/index.php' : '../index.php'));
                 exit();
             }
@@ -50,8 +104,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } catch (Exception $e) {
         if (isset($result)) $result->free();
         if (isset($stmt)) $stmt->close();
-        $conexion->close();
-        
+        $connetion->close();
+
         echo '<script>
             alert("Error: ' . addslashes($e->getMessage()) . '");
             window.location.href = "login-admin.php";
@@ -74,11 +128,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <form action="" method="POST">
             <div class="container">
                 <h1>Inicia sesión</h1>
-                <input class="input-w" type="text" id="email" name="correo" placeholder="Correo">
-                <input class="input-w" type="password" id="password" name="contraseña" placeholder="Contraseña">
+                <?php if ($error_message): ?>
+                    <p style="color:red;"><?php echo htmlspecialchars($error_message); ?></p>
+                <?php endif; ?>
+                <input class="input-w" type="text" id="email" name="correo" placeholder="Correo" required>
+                <input class="input-w" type="password" id="password" name="contraseña" placeholder="Contraseña" required>
                 <input class="l-button" type="submit" value="Inicia sesión">
                 <p>¿Olvidaste tu contraseña? <a href="recuperar_password.php">Recuperar contraseña</a></p>
                 <p>¿Aún no tienes una cuenta? <a href="register-admin.php">Regístrate</a></p>
+                <p>Estado de la base de datos: <?php echo htmlspecialchars($db_status); ?></p>
             </div>
         </form>
         <div class="container-img">

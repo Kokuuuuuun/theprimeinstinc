@@ -4,7 +4,7 @@ require_once 'check_email.php';
 
 try {
     // Verify connection is available
-    if (!isset($conexion) || $conexion->connect_error) {
+    if (!isset($connetion) || $connetion->connect_error) {
         throw new Exception("Error de conexión a la base de datos");
     }
 
@@ -29,7 +29,7 @@ try {
     }
 
     // Check for duplicate email in the 'usuario' table
-    if (checkDuplicateEmail($conexion, $email)) {
+    if (checkDuplicateEmail($connetion, $email)) {
         echo '<script>
             alert("Este correo electrónico ya está registrado");
             window.history.back();
@@ -39,17 +39,17 @@ try {
 
     // Hash password and save user to 'usuario' table
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-    
+
     // Corrected table name from 'usuarios' to 'usuario'
     $sql = "INSERT INTO usuario (nombre, correo, contraseña) VALUES (?, ?, ?)";
-    $stmt = $conexion->prepare($sql);
-    
+    $stmt = $connetion->prepare($sql);
+
     if (!$stmt) {
-        throw new Exception("Error en la preparación de la consulta: " . $conexion->error);
+        throw new Exception("Error en la preparación de la consulta: " . $connetion->error);
     }
 
     $stmt->bind_param("sss", $nombre, $email, $hashed_password);
-    
+
     if ($stmt->execute()) {
         echo '<script>
             alert("Usuario registrado correctamente");

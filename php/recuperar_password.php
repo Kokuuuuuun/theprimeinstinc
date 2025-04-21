@@ -12,10 +12,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Verificar que el email existe en la base de datos
     try {
         $sql = "SELECT id, nombre FROM usuario WHERE correo = ?";
-        $stmt = $connection->prepare($sql);
+        $stmt = $connetion->prepare($sql);
 
         if (!$stmt) {
-            throw new Exception("Error en la preparación de la consulta: " . $conexion->error);
+            throw new Exception("Error en la preparación de la consulta: " . $connetion->error);
         }
 
         $stmt->bind_param("s", $email);
@@ -32,12 +32,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $token = bin2hex(random_bytes(32));
             $expiry = date('Y-m-d H:i:s', strtotime('+1 hour')); // Expira en 1 hora
 
+            // Cerrar el primer statement antes de ejecutar otro
+            $stmt->close();
+            $result->free();
+
             // Almacenar el token en la base de datos
             $sql = "INSERT INTO password_reset (user_id, token, expiry, used) VALUES (?, ?, ?, 0)";
-            $stmt = $conexion->prepare($sql);
+            $stmt = $connetion->prepare($sql);
 
             if (!$stmt) {
-                throw new Exception("Error en la preparación de la consulta: " . $connection->error);
+                throw new Exception("Error en la preparación de la consulta: " . $connetion->error);
             }
 
             $stmt->bind_param("iss", $user_id, $token, $expiry);
@@ -53,8 +57,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             } else {
                 $error = "Error al generar el token de recuperación: " . $stmt->error;
             }
+
+            // Cerrar el statement
+            $stmt->close();
         } else {
             $error = "No existe una cuenta asociada a este correo electrónico.";
+            // Cerrar statement y resultado
+            $stmt->close();
+            $result->free();
         }
     } catch (Exception $e) {
         $error = "Error: " . $e->getMessage();

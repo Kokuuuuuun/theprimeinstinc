@@ -18,10 +18,10 @@ if (!empty($token)) {
                 JOIN usuario u ON pr.user_id = u.id
                 WHERE pr.token = ? AND pr.expiry > ? AND pr.used = 0";
 
-        $stmt = $conexion->prepare($sql);
+        $stmt = $connetion->prepare($sql);
 
         if (!$stmt) {
-            throw new Exception("Error en la preparación de la consulta: " . $conexion->error);
+            throw new Exception("Error en la preparación de la consulta: " . $connetion->error);
         }
 
         $stmt->bind_param("ss", $token, $current_time);
@@ -38,6 +38,11 @@ if (!empty($token)) {
         } else {
             $error = "El enlace de restablecimiento no es válido o ha expirado.";
         }
+
+        // Liberar el resultado
+        $result->free();
+        $stmt->close();
+
     } catch (Exception $e) {
         $error = "Error: " . $e->getMessage();
     }
@@ -62,30 +67,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $token_valid) {
 
             // Actualizar la contraseña del usuario
             $sql = "UPDATE usuario SET contraseña = ? WHERE id = ?";
-            $stmt = $conexion->prepare($sql);
+            $stmt = $connetion->prepare($sql);
 
             if (!$stmt) {
-                throw new Exception("Error en la preparación de la consulta: " . $conexion->error);
+                throw new Exception("Error en la preparación de la consulta: " . $connetion->error);
             }
 
             $stmt->bind_param("si", $hashed_password, $user_id);
 
             if ($stmt->execute()) {
+                // Cerrar el statement antes de ejecutar otra consulta
+                $stmt->close();
+
                 // Marcar el token como usado
                 $sql = "UPDATE password_reset SET used = 1 WHERE id = ?";
-                $update_stmt = $conexion->prepare($sql);
+                $update_stmt = $connetion->prepare($sql);
 
                 if (!$update_stmt) {
-                    throw new Exception("Error en la preparación de la consulta: " . $conexion->error);
+                    throw new Exception("Error en la preparación de la consulta: " . $connetion->error);
                 }
 
                 $update_stmt->bind_param("i", $reset_id);
                 $update_stmt->execute();
+                $update_stmt->close();
 
                 $mensaje = "¡Tu contraseña ha sido restablecida correctamente! Ahora puedes iniciar sesión con tu nueva contraseña.";
                 $token_valid = false; // Ya no mostrar el formulario
             } else {
                 $error = "Error al actualizar la contraseña: " . $stmt->error;
+                $stmt->close();
             }
         } catch (Exception $e) {
             $error = "Error: " . $e->getMessage();

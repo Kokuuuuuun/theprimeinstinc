@@ -9,7 +9,7 @@ define('ENV_PATH', realpath(__DIR__ . '/../.env'));
 // Cargar variables de entorno
 if (file_exists(ENV_PATH)) {
     $env = parse_ini_file(ENV_PATH, false, INI_SCANNER_TYPED);
-    
+
     foreach ($env as $key => $value) {
         $_ENV[$key] = $value;
         putenv("$key=$value");
@@ -32,30 +32,30 @@ $db_config = [
 // Establecer conexión
 // ===================================================
 try {
-    $conexion = new mysqli(
+    $connetion = new mysqli(
         $db_config['host'],
         $db_config['user'],
         $db_config['pass'],
         $db_config['db'],
         $db_config['port']
     );
-    
-    if ($conexion->connect_errno) {
-        throw new RuntimeException("Error de conexión MySQL: " . $conexion->connect_error);
+
+    if ($connetion->connect_errno) {
+        throw new RuntimeException("Error de conexión MySQL: " . $connetion->connect_error);
     }
-    
+
     // Configurar charset
-    if (!$conexion->set_charset($db_config['charset'])) {
-        throw new RuntimeException("Error configurando charset: " . $conexion->error);
+    if (!$connetion->set_charset($db_config['charset'])) {
+        throw new RuntimeException("Error configurando charset: " . $connetion->error);
     }
-    
+
 } catch (RuntimeException $e) {
     // Manejo centralizado de errores
     $error_message = date('[Y-m-d H:i:s]') . " " . $e->getMessage();
-    
+
     // Registrar en archivo de log
     error_log($error_message . PHP_EOL, 3, __DIR__ . '/../logs/db_errors.log');
-    
+
     // Redirección segura en producción
     if (!isset($_ENV['APP_DEBUG']) || $_ENV['APP_DEBUG'] !== 'true') {
         header('HTTP/1.1 500 Internal Server Error');
