@@ -5,7 +5,7 @@
 // -------------------------------------------
 $mysqlConfig = [
     'hosts' => [
-        'mysql:8',                        // Nombre del servicio
+        'mysqld',                        // Nombre del servicio
         'qs0404k8swsk4wsc00osc0co',     // ID del contenedor MySQL
         '172.17.0.1',                   // Red por defecto de Docker
         'host.docker.internal',         // Alias especial para hosts
