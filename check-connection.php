@@ -29,9 +29,9 @@ echo "</ul>";
 echo "<h2>Intentando conexión a la base de datos</h2>";
 
 // Usar variables de entorno o valores por defecto
-$host = getenv('DB_HOST') ?: 'mysql';
+$host = getenv('DB_HOST') ?: '10.0.1.6';
 $usuario = getenv('DB_USER') ?: 'root';
-$password = getenv('DB_PASSWORD') ?: '';
+$password = getenv('DB_PASSWORD') ?: 'ONflEz9QYm64VDg9FdZqjeEQqanwhsxn31u1HTCHlX6dJh3OdPuWSHrA2lHTrXsV';
 $base_datos = getenv('DB_NAME') ?: 'prime';
 
 echo "<p>Host: $host</p>";
