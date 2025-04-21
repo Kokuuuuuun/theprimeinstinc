@@ -3,7 +3,7 @@ require_once 'conexion.php';
 
 function checkDuplicateEmail($conexion, $email, $exclude_id = null) {
     // Verify connection
-    if (!$connection || $conexion->connect_error) {
+    if (!$conexion || $conexion->connect_error) {
         throw new Exception("Error de conexión a la base de datos");
     }
 
