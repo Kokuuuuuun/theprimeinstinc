@@ -20,7 +20,7 @@ if (file_exists(ENV_PATH)) {
 // Parámetros de conexión
 // ===================================================
 $db_config = [
-    'host' => $_ENV['DB_HOST'] ?? '10.0.1.6',
+    'host' => $_ENV['DB_HOST'] ?? '10.0.1.3',
     'user' => $_ENV['DB_USER'] ?? 'root',
     'pass' => $_ENV['DB_PASSWORD'] ?? 'ONflEz9QYm64VDg9FdZqjeEQqanwhsxn31u1HTCHlX6dJh3OdPuWSHrA2lHTrXsV',
     'db' => $_ENV['DB_NAME'] ?? 'prime',
@@ -70,6 +70,6 @@ try {
 // Uso seguro de la conexión
 // ===================================================
 // Ejemplo de consulta preparada
-$stmt = $conexion->prepare("SELECT * FROM usuarios WHERE id = ?");
+$stmt = $conexion->prepare("SELECT * FROM usuario WHERE id = ?");
 $stmt->bind_param('i', $user_id);
 $stmt->execute();
