@@ -22,6 +22,7 @@ foreach ($hosts as $host) {
         echo "❌ Fallo en $host: " . $e->getMessage() . "\n";
     }
 }
+?>
 <?php
 // db-diagnostic.php
 // -------------------------------------------
