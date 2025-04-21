@@ -15,7 +15,7 @@ $password = getenv('DB_PASSWORD') ?: 'ONflEz9QYm64VDg9FdZqjeEQqanwhsxn31u1HTCHlX
 $base_datos = getenv('DB_NAME') ?: 'prime';
 
 // Intentar conexión a la base de datos
-$connection = new mysqli($host, $usuario, $password, $base_datos);
+$conexion = new mysqli('127.0.0.1', 'root', 'ONflEz9QYm64VDg9FdZqjeEQqanwhsxn31u1HTCHlX6dJh3OdPuWSHrA2lHTrXsV', 'prime');
 
 // Verificar si hay errores de conexión
 if ($connection->connect_error) {
