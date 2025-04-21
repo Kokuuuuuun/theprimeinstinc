@@ -9,7 +9,7 @@ if (file_exists(__DIR__ . '/../.env')) {
 
 // Usar variables de entorno o valores por defecto para InfinityFree
 
-$host = getenv('DB_HOST') ?: 'localhost';
+$host = getenv('DB_HOST') ?: 'mysql';
 $usuario = getenv('DB_USER') ?: 'root';
 $password = getenv('DB_PASSWORD') ?: 'ONflEz9QYm64VDg9FdZqjeEQqanwhsxn31u1HTCHlX6dJh3OdPuWSHrA2lHTrXsV';
 $base_datos = getenv('DB_NAME') ?: 'prime';
