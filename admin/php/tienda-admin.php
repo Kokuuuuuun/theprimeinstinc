@@ -42,7 +42,7 @@ if (!isset($_SESSION['user_id'])) {
                   <span class="username"><?php echo $_SESSION['username']; ?></span>
                   <span class="email"><?php echo $_SESSION['email']; ?></span>
               </div>
-              <a href="php/logout.php" class="logout-btn">Cerrar sesión</a>
+              <a href="logout.php" class="logout-btn">Cerrar sesión</a>
           </div>
 
         <i id="cart-icon" class='bx bx-cart' ></i>
