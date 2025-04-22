@@ -1,474 +1,203 @@
 <?php
-// Definir contraseña para acceder (cambiar en producción)
-$acceso_password = 'prime2025';
+// Configurar para mostrar errores
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-// Verificar contraseña
-$authorized = false;
-if (isset($_POST['password']) && $_POST['password'] === $acceso_password) {
-    $authorized = true;
-} elseif (isset($_GET['password']) && $_GET['password'] === $acceso_password) {
-    $authorized = true;
-}
-
-// Permitir acceso automatizado en caso de error
-if (isset($_GET['error'])) {
-    $authorized = true;
-}
-
-// Función para comprobar elementos
-function check_item($check, $label, $success_msg = 'OK', $error_msg = 'Error') {
-    echo '<tr>';
-    echo '<td>' . $label . '</td>';
-    if ($check) {
-        echo '<td class="success">' . $success_msg . '</td>';
-    } else {
-        echo '<td class="error">' . $error_msg . '</td>';
-    }
-    echo '</tr>';
-}
-
-// Capturar errores para extensiones
-function check_extension($ext) {
-    return extension_loaded($ext);
-}
-
-// Verificar conexión a la base de datos
-function check_database() {
-    try {
-        $host = getenv('DB_HOST') ?: '10.0.1.6';
-        $usuario = getenv('DB_USER') ?: 'root';
-        $password = getenv('DB_PASSWORD') ?: 'ONflEz9QYm64VDg9FdZqjeEQqanwhsxn31u1HTCHlX6dJh3OdPuWSHrA2lHTrXsV';
-        $base_datos = getenv('DB_NAME') ?: 'prime';
-
-        $connection = new mysqli($host, $usuario, $password, $base_datos);
-
-        if ($connection->connect_error) {
-            return ['success' => false, 'message' => $connection->connect_error];
-        }
-
-        // Verificar tablas
-        $result = $connection->query("SHOW TABLES");
-        $tables = [];
-        if ($result) {
-            while ($row = $result->fetch_array()) {
-                $tables[] = $row[0];
-            }
-        }
-
-        return [
-            'success' => true,
-            'message' => 'Conectado a ' . $base_datos,
-            'details' => 'Tablas: ' . implode(', ', $tables)
-        ];
-    } catch (Exception $e) {
-        return ['success' => false, 'message' => $e->getMessage()];
-    }
-}
-
-// Verificar directorios
-function check_directory($dir, $check_writable = true) {
-    if (!file_exists($dir)) {
-        return ['success' => false, 'message' => 'No existe'];
-    }
-
-    if ($check_writable && !is_writable($dir)) {
-        return ['success' => false, 'message' => 'Sin permisos de escritura'];
-    }
-
-    return ['success' => true, 'message' => 'OK', 'details' => 'Permisos: ' . substr(sprintf('%o', fileperms($dir)), -4)];
-}
-
-// Comprobar variables de entorno
-function get_env_var($name, $default = '') {
-    $value = getenv($name) ?: $default;
-    if (empty($value)) {
-        return ['success' => false, 'message' => 'No definido o vacío'];
-    }
-    if ($name == 'DB_PASSWORD' && !empty($value)) {
-        return ['success' => true, 'message' => 'Configurado', 'details' => '********'];
-    }
-    return ['success' => true, 'message' => 'Configurado', 'details' => $value];
-}
-
-// Verificar versión PHP
-function check_php_version($min_version = '7.4.0') {
-    if (version_compare(PHP_VERSION, $min_version, '>=')) {
-        return ['success' => true, 'message' => PHP_VERSION];
-    } else {
-        return ['success' => false, 'message' => PHP_VERSION, 'details' => 'Se requiere PHP ' . $min_version . ' o superior'];
-    }
-}
-
-// Obtener todas las variables de entorno
-function get_all_env_vars() {
-    $env_vars = [];
-    foreach ($_ENV as $key => $value) {
-        if (!in_array($key, ['DB_PASSWORD', 'MYSQL_PASSWORD']) && !str_contains(strtolower($key), 'secret')) {
-            $env_vars[$key] = $value;
-        } else {
-            $env_vars[$key] = '********';
-        }
-    }
-    return $env_vars;
-}
-
-// Verificar módulos de Apache
-function check_apache_module($module) {
-    if (function_exists('apache_get_modules')) {
-        return in_array($module, apache_get_modules());
-    }
-    return false; // No podemos verificar
-}
-
-// Si está autorizado, realizar las comprobaciones
-if ($authorized) {
-    $php_version = check_php_version('7.4.0');
-    $db_result = check_database();
-    $uploads_dir = check_directory(__DIR__ . '/uploads', true);
-    $admin_uploads_dir = check_directory(__DIR__ . '/admin/uploads', true);
-    $logs_dir = check_directory(__DIR__ . '/logs', true);
-
-    $env_db_host = get_env_var('DB_HOST', 'sql105.infinityfree.com');
-    $env_db_user = get_env_var('DB_USER', 'if0_38793011');
-    $env_db_password = get_env_var('DB_PASSWORD');
-    $env_db_name = get_env_var('DB_NAME', 'if0_38793011_prime');
-
-    $all_env_vars = get_all_env_vars();
-}
-
-// Detectar errores específicos
-$specific_error = '';
-$error_description = '';
-$error_solution = '';
-
-if (isset($_GET['error'])) {
-    switch ($_GET['error']) {
-        case '500':
-            $specific_error = 'Error 500 - Internal Server Error';
-            $error_description = 'El servidor encontró un error interno al procesar la solicitud.';
-            $error_solution = 'Revisa los archivos de registro en la carpeta logs para más detalles.';
-            break;
-        case 'db':
-            $specific_error = 'Error de Conexión a Base de Datos';
-            $error_description = 'No se pudo establecer conexión con la base de datos.';
-            $error_solution = 'Verifica las credenciales de la base de datos en el archivo .env y asegúrate de que la base de datos esté accesible.';
-            break;
-        case 'db_admin':
-            $specific_error = 'Error de Conexión a Base de Datos (Admin)';
-            $error_description = 'No se pudo establecer conexión con la base de datos desde el panel de administración.';
-            $error_solution = 'Verifica las credenciales de la base de datos en el archivo .env y asegúrate de que la base de datos esté accesible.';
-            break;
-        default:
-            $specific_error = 'Error Desconocido';
-            $error_description = 'Se ha producido un error no identificado.';
-            $error_solution = 'Revisa los archivos de registro en la carpeta logs para más detalles.';
-    }
-}
-?>
-
-<!DOCTYPE html>
-<html lang="es">
+echo "<!DOCTYPE html>
+<html lang='es'>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
-    <title>Diagnóstico - Prime Instinct</title>
+    <meta charset='UTF-8'>
+    <title>Diagnóstico de Conexión a Base de Datos</title>
+    <meta name='robots' content='noindex, nofollow'>
     <style>
         body {
             font-family: Arial, sans-serif;
+            background: #f4f4f4;
             margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-            color: #333;
+            padding: 0;
         }
         .container {
             max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 30px auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.09);
+            padding: 25px 30px 30px 30px;
         }
-        h1 {
+        h1, h2, h3 {
             color: #333;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
+        ul {
+            margin-left: 20px;
         }
-        th, td {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: left;
+        hr {
+            margin: 30px 0;
+            border: none;
+            border-top: 1px solid #eee;
         }
-        th {
-            background-color: #f2f2f2;
-            font-weight: bold;
+        p {
+            line-height: 1.5;
         }
         .success {
             color: green;
             font-weight: bold;
         }
         .error {
-            color: red;
+            color: #d8000c;
             font-weight: bold;
         }
-        .details {
-            font-size: 0.8em;
-            color: #666;
-            margin-top: 5px;
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #888;
+            font-size: 0.95em;
         }
-        form {
-            margin: 20px 0;
-        }
-        input[type="password"] {
-            padding: 8px;
-            border: 1px solid #ddd;
+        code {
+            background: #eee;
+            padding: 2px 5px;
             border-radius: 3px;
-            width: 250px;
-        }
-        button {
-            padding: 8px 15px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .section {
-            margin: 20px 0;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-        }
-        .hidden {
-            display: none;
-        }
-        .error-box {
-            background-color: #ffebee;
-            border-left: 4px solid #f44336;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-        }
-        .solution-box {
-            background-color: #e8f5e9;
-            border-left: 4px solid #4caf50;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
+            font-size: 1em;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Diagnóstico de Prime Instinct</h1>
+<div class='container'>
+";
 
-        <?php if ($specific_error): ?>
-            <div class="error-box">
-                <h2><?php echo $specific_error; ?></h2>
-                <p><?php echo $error_description; ?></p>
-            </div>
-            <div class="solution-box">
-                <h3>Solución Recomendada:</h3>
-                <p><?php echo $error_solution; ?></p>
-            </div>
-        <?php endif; ?>
+echo "<h1>Diagnóstico de Conexión a Base de Datos</h1>";
 
-        <?php if (!$authorized): ?>
-            <p>Por favor ingresa la contraseña para acceder a la herramienta de diagnóstico.</p>
-            <form method="post" action="">
-                <input type="password" name="password" placeholder="Contraseña">
-                <button type="submit">Verificar</button>
-            </form>
-        <?php else: ?>
+// Cargar variables de entorno desde .env si existe
+if (file_exists(__DIR__ . '/.env')) {
+    $env = parse_ini_file(__DIR__ . '/.env', false, INI_SCANNER_TYPED);
+    foreach ($env as $key => $value) {
+        $_ENV[$key] = $value;
+        putenv("$key=$value");
+    }
+}
 
-            <div class="section">
-                <h2>Información del Sistema</h2>
-                <table>
-                    <tr>
-                        <th>Componente</th>
-                        <th>Estado</th>
-                    </tr>
-                    <tr>
-                        <td>Versión de PHP</td>
-                        <td class="<?php echo $php_version['success'] ? 'success' : 'error'; ?>">
-                            <?php echo $php_version['message']; ?>
-                            <?php if (isset($php_version['details'])): ?>
-                                <div class="details"><?php echo $php_version['details']; ?></div>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <?php check_item(check_extension('mysqli'), 'Extensión MySQLi'); ?>
-                    <?php check_item(check_extension('pdo_mysql'), 'Extensión PDO MySQL'); ?>
-                    <?php check_item(check_extension('gd'), 'Extensión GD (imágenes)'); ?>
-                    <?php check_item(check_extension('zip'), 'Extensión ZIP'); ?>
-                    <?php check_item(check_apache_module('mod_rewrite'), 'Apache mod_rewrite'); ?>
-                </table>
-            </div>
+// Parámetros de conexión
+$db_config = [
+    'host' => $_ENV['DB_HOST'] ?? '172.20.1.7',
+    'user' => $_ENV['DB_USER'] ?? 'root',
+    'pass' => $_ENV['DB_PASSWORD'] ?? '1234567890',
+    'db' => $_ENV['DB_NAME'] ?? 'prime',
+    'port' => $_ENV['DB_PORT'] ?? 3306,
+    'charset' => $_ENV['DB_CHARSET'] ?? 'utf8mb4'
+];
 
-            <div class="section">
-                <h2>Base de Datos</h2>
-                <table>
-                    <tr>
-                        <th>Componente</th>
-                        <th>Estado</th>
-                    </tr>
-                    <tr>
-                        <td>Conexión a la Base de Datos</td>
-                        <td class="<?php echo $db_result['success'] ? 'success' : 'error'; ?>">
-                            <?php echo $db_result['message']; ?>
-                            <?php if (isset($db_result['details'])): ?>
-                                <div class="details"><?php echo $db_result['details']; ?></div>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                </table>
-            </div>
+echo "<h2>Configuración actual:</h2>";
+echo "<ul>";
+foreach ($db_config as $key => $value) {
+    // No mostrar la contraseña real por seguridad
+    if ($key === 'pass') {
+        echo "<li><b>$key</b>: ********</li>";
+    } else {
+        echo "<li><b>$key</b>: <code>" . htmlspecialchars($value) . "</code></li>";
+    }
+}
+echo "</ul>";
 
-            <div class="section">
-                <h2>Variables de Entorno</h2>
-                <table>
-                    <tr>
-                        <th>Variable</th>
-                        <th>Estado</th>
-                    </tr>
-                    <tr>
-                        <td>DB_HOST</td>
-                        <td class="<?php echo $env_db_host['success'] ? 'success' : 'error'; ?>">
-                            <?php echo $env_db_host['message']; ?>
-                            <?php if (isset($env_db_host['details'])): ?>
-                                <div class="details"><?php echo $env_db_host['details']; ?></div>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>DB_USER</td>
-                        <td class="<?php echo $env_db_user['success'] ? 'success' : 'error'; ?>">
-                            <?php echo $env_db_user['message']; ?>
-                            <?php if (isset($env_db_user['details'])): ?>
-                                <div class="details"><?php echo $env_db_user['details']; ?></div>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>DB_PASSWORD</td>
-                        <td class="<?php echo $env_db_password['success'] ? 'success' : 'error'; ?>">
-                            <?php echo $env_db_password['message']; ?>
-                            <?php if (isset($env_db_password['details'])): ?>
-                                <div class="details"><?php echo $env_db_password['details']; ?></div>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>DB_NAME</td>
-                        <td class="<?php echo $env_db_name['success'] ? 'success' : 'error'; ?>">
-                            <?php echo $env_db_name['message']; ?>
-                            <?php if (isset($env_db_name['details'])): ?>
-                                <div class="details"><?php echo $env_db_name['details']; ?></div>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                </table>
-            </div>
+echo "<h2>Prueba de conexiones múltiples:</h2>";
 
-            <div class="section">
-                <h2>Directorios</h2>
-                <table>
-                    <tr>
-                        <th>Directorio</th>
-                        <th>Estado</th>
-                    </tr>
-                    <tr>
-                        <td>Directorio de uploads</td>
-                        <td class="<?php echo $uploads_dir['success'] ? 'success' : 'error'; ?>">
-                            <?php echo $uploads_dir['message']; ?>
-                            <?php if (isset($uploads_dir['details'])): ?>
-                                <div class="details"><?php echo $uploads_dir['details']; ?></div>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Directorio admin/uploads</td>
-                        <td class="<?php echo $admin_uploads_dir['success'] ? 'success' : 'error'; ?>">
-                            <?php echo $admin_uploads_dir['message']; ?>
-                            <?php if (isset($admin_uploads_dir['details'])): ?>
-                                <div class="details"><?php echo $admin_uploads_dir['details']; ?></div>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Directorio de logs</td>
-                        <td class="<?php echo $logs_dir['success'] ? 'success' : 'error'; ?>">
-                            <?php echo $logs_dir['message']; ?>
-                            <?php if (isset($logs_dir['details'])): ?>
-                                <div class="details"><?php echo $logs_dir['details']; ?></div>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                </table>
-            </div>
+// Función para probar una conexión
+function testConnection($db_config, $num) {
+    echo "<h3>Conexión #$num</h3>";
 
-            <div class="section">
-                <h2>Todas las Variables de Entorno</h2>
-                <button onclick="toggleEnvVars()">Mostrar/Ocultar Variables</button>
-                <div id="envVarsContainer" class="hidden">
-                    <table>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Valor</th>
-                        </tr>
-                        <?php foreach ($all_env_vars as $name => $value): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($name); ?></td>
-                            <td><?php echo htmlspecialchars($value); ?></td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </table>
-                </div>
-            </div>
+    try {
+        $start = microtime(true);
 
-            <div class="section">
-                <h2>Verificación de logs</h2>
-                <p>Archivos de log disponibles:</p>
-                <?php
-                $log_files = glob(__DIR__ . '/logs/*.log');
-                if (empty($log_files)) {
-                    echo "<p>No hay archivos de log disponibles.</p>";
-                } else {
-                    echo "<ul>";
-                    foreach ($log_files as $log_file) {
-                        $file_name = basename($log_file);
-                        $file_size = filesize($log_file);
-                        echo "<li>" . htmlspecialchars($file_name) . " (" . round($file_size / 1024, 2) . " KB)</li>";
-                    }
-                    echo "</ul>";
-                }
-                ?>
-            </div>
+        $conn = new mysqli(
+            $db_config['host'],
+            $db_config['user'],
+            $db_config['pass'],
+            $db_config['db'],
+            $db_config['port']
+        );
 
-        <?php endif; ?>
+        $time = number_format((microtime(true) - $start) * 1000, 2); // en milisegundos
 
-        <footer>
-            <p><a href="/">Volver a la página principal</a></p>
-        </footer>
-    </div>
-
-    <script>
-        function toggleEnvVars() {
-            var container = document.getElementById('envVarsContainer');
-            if (container.classList.contains('hidden')) {
-                container.classList.remove('hidden');
-            } else {
-                container.classList.add('hidden');
-            }
+        if ($conn->connect_error) {
+            echo "<p class='error'>✗ Error de conexión: " . htmlspecialchars($conn->connect_error) . "</p>";
+            return false;
         }
-    </script>
+
+        echo "<p class='success'>✓ Conexión establecida exitosamente (tomó $time ms)</p>";
+
+        // Establecer charset
+        if (!$conn->set_charset($db_config['charset'])) {
+            echo "<p class='error'>No se pudo establecer el charset '" . htmlspecialchars($db_config['charset']) . "': " . htmlspecialchars($conn->error) . "</p>";
+        } else {
+            echo "<p>Charset de conexión: <b>" . htmlspecialchars($db_config['charset']) . "</b></p>";
+        }
+
+        // Probar una consulta simple
+        $query_start = microtime(true);
+        $result = $conn->query("SELECT 1 as test");
+        $query_time = number_format((microtime(true) - $query_start) * 1000, 2);
+
+        if ($result) {
+            echo "<p class='success'>✓ Consulta simple exitosa (tomó $query_time ms)</p>";
+            $row = $result->fetch_assoc();
+            echo "<p>Resultado: <b>" . htmlspecialchars($row['test']) . "</b></p>";
+            $result->free();
+        } else {
+            echo "<p class='error'>✗ Error en consulta: " . htmlspecialchars($conn->error) . "</p>";
+        }
+
+        // Probar una consulta a tabla 'usuario'
+        echo "<p>Probando consulta a tabla <b>usuario</b>...</p>";
+        $result = $conn->query("SELECT COUNT(*) as total FROM usuario");
+
+        if ($result) {
+            $row = $result->fetch_assoc();
+            echo "<p>Total usuarios: <b>" . htmlspecialchars($row['total']) . "</b></p>";
+            $result->free();
+        } else {
+            echo "<p class='error'>✗ Error al consultar usuarios: " . htmlspecialchars($conn->error) . "</p>";
+        }
+
+        // Probar una transacción (si es posible)
+        if ($conn->begin_transaction()) {
+            $conn->rollback();
+            echo "<p class='success'>✓ Transacciones soportadas</p>";
+        } else {
+            echo "<p class='error'>✗ No se pudo iniciar una transacción: " . htmlspecialchars($conn->error) . "</p>";
+        }
+
+        // Cerrar la conexión explícitamente
+        $conn->close();
+        echo "<p>Conexión cerrada correctamente</p>";
+
+        return true;
+    } catch (Exception $e) {
+        echo "<p class='error'>✗ Excepción: " . htmlspecialchars($e->getMessage()) . "</p>";
+        return false;
+    }
+}
+
+// Probar múltiples conexiones para simular concurrencia
+for ($i = 1; $i <= 3; $i++) {
+    $success = testConnection($db_config, $i);
+    echo "<hr>";
+}
+
+echo "<h2>Recomendaciones:</h2>";
+echo "<ul>";
+echo "<li>Siempre cierre las consultas (<code>\$stmt->close()</code> o <code>\$result->free()</code>) antes de cerrar la conexión</li>";
+echo "<li>Cierre la conexión (<code>\$connection->close()</code>) al final de cada script</li>";
+echo "<li>No comparta una misma conexión entre diferentes peticiones o hilos</li>";
+echo "<li>Use transacciones para operaciones complejas</li>";
+echo "<li>Asegúrese de obtener todos los resultados antes de ejecutar una nueva consulta</li>";
+echo "<li>Verifique que la tabla <b>usuario</b> existe y tiene registros</li>";
+echo "<li>Si ve errores de <b>Too many connections</b> o <b>MySQL server has gone away</b>, revise la configuración de <code>max_connections</code> y <code>wait_timeout</code> en su servidor MySQL</li>";
+echo "</ul>";
+
+echo "<div class='footer'><a href='/'>Volver a la página principal</a></div>";
+
+echo "
+</div>
 </body>
 </html>
+";
+?>

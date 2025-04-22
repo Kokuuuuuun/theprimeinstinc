@@ -29,47 +29,48 @@ $db_config = [
 ];
 
 // ===================================================
-// Establecer conexión
+// Función para obtener una nueva conexión
 // ===================================================
-try {
-    $connection = new mysqli(
-        $db_config['host'],
-        $db_config['user'],
-        $db_config['pass'],
-        $db_config['db'],
-        $db_config['port']
-    );
+function getConnection() {
+    global $db_config;
 
-    if ($connection->connect_errno) {
-        throw new RuntimeException("Error de conexión MySQL: " . $connection->connect_error);
-    }
+    try {
+        $conn = new mysqli(
+            $db_config['host'],
+            $db_config['user'],
+            $db_config['pass'],
+            $db_config['db'],
+            $db_config['port']
+        );
 
-    // Configurar charset
-    if (!$connection->set_charset($db_config['charset'])) {
-        throw new RuntimeException("Error configurando charset: " . $connection->error);
-    }
+        if ($conn->connect_errno) {
+            throw new RuntimeException("Error de conexión MySQL: " . $conn->connect_error);
+        }
 
-} catch (RuntimeException $e) {
-    // Manejo centralizado de errores
-    $error_message = date('[Y-m-d H:i:s]') . " " . $e->getMessage();
+        // Configurar charset
+        if (!$conn->set_charset($db_config['charset'])) {
+            throw new RuntimeException("Error configurando charset: " . $conn->error);
+        }
 
-    // Registrar en archivo de log
-    error_log($error_message . PHP_EOL, 3, __DIR__ . '/../logs/db_errors.log');
+        return $conn;
 
-    // Redirección segura en producción
-    if (!isset($_ENV['APP_DEBUG']) || $_ENV['APP_DEBUG'] !== 'true') {
-        header('HTTP/1.1 500 Internal Server Error');
-        header('Location: /error-db.php');
-        exit;
-    } else {
-        die("<h2>Error de Desarrollo</h2><pre>{$e->getMessage()}</pre>");
+    } catch (RuntimeException $e) {
+        // Manejo centralizado de errores
+        $error_message = date('[Y-m-d H:i:s]') . " " . $e->getMessage();
+
+        // Registrar en archivo de log
+        error_log($error_message . PHP_EOL, 3, __DIR__ . '/../logs/db_errors.log');
+
+        // Redirección segura en producción
+        if (!isset($_ENV['APP_DEBUG']) || $_ENV['APP_DEBUG'] !== 'true') {
+            header('HTTP/1.1 500 Internal Server Error');
+            header('Location: /error-db.php');
+            exit;
+        } else {
+            die("<h2>Error de Desarrollo</h2><pre>{$e->getMessage()}</pre>");
+        }
     }
 }
 
-// ===================================================
-// Uso seguro de la conexión
-// ===================================================
-// Ejemplo de consulta preparada
-$stmt = $connection->prepare("SELECT * FROM usuario WHERE id = ?");
-$stmt->bind_param('i', $user_id);
-$stmt->execute();
+// Crear una conexión para este request
+$connection = getConnection();

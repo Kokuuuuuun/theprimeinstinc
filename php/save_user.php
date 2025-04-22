@@ -2,7 +2,7 @@
 require_once 'conexion.php';
 require_once 'check_email.php';
 
-// Generar nonce para CSP (debes implementar un sistema para generarlo y pasarlo a la vista)
+// Generar nonce para CSP
 $nonce = base64_encode(random_bytes(16));
 
 try {
@@ -41,12 +41,7 @@ try {
 
     // Verificar email duplicado
     if (checkDuplicateEmail($connection, $email)) {
-        $connection->close();
-        echo '<script nonce="'.$nonce.'">
-            alert("Este correo electrónico ya está registrado");
-            window.history.back();
-        </script>';
-        exit();
+        throw new Exception("Este correo electrónico ya está registrado");
     }
 
     // Hash seguro con coste personalizado
@@ -54,6 +49,7 @@ try {
 
     // Transacción para integridad de datos
     $connection->begin_transaction();
+    $stmt = null;
 
     try {
         $sql = "INSERT INTO usuario (nombre, correo, contraseña) VALUES (?, ?, ?)";
@@ -66,9 +62,14 @@ try {
         $stmt->bind_param("sss", $nombre, $email, $hashed_password);
 
         // Ejecutar la consulta
-        $stmt->execute();
+        if(!$stmt->execute()) {
+            throw new Exception("Error al ejecutar: " . $stmt->error);
+        }
 
         $connection->commit();
+
+        // Registrar éxito
+        error_log(date('[Y-m-d H:i:s]') . " Usuario registrado: $email", 3, __DIR__ . '/../logs/user_registrations.log');
 
         echo '<script nonce="'.$nonce.'">
             alert("Usuario registrado correctamente");
@@ -76,19 +77,34 @@ try {
         </script>';
 
     } catch (Exception $e) {
+        // Asegurarse de hacer rollback en caso de error
         $connection->rollback();
         throw $e;
     } finally {
-        if (isset($stmt)) {
+        // Cerrar statement si existe
+        if ($stmt) {
             $stmt->close();
         }
+
+        // Cerrar la conexión
         $connection->close();
     }
 
 } catch (Exception $e) {
+    // Asegurar que la conexión se cierra incluso cuando hay un error
+    if (isset($connection) && $connection) {
+        if (!$connection->connect_error) {
+            $connection->close();
+        }
+    }
+
+    // Registrar el error
+    error_log(date('[Y-m-d H:i:s]') . " Error en registro: " . $e->getMessage(), 3, __DIR__ . '/../logs/db_errors.log');
+
     echo '<script nonce="'.$nonce.'">
         alert("Error: ' . addslashes($e->getMessage()) . '");
         window.history.back();
     </script>';
     exit();
 }
+?>
