@@ -2,7 +2,7 @@
 // Session management
 session_start();
 if (isset($_SESSION['user_id'])) {
-    header("Location: index-admin.php");
+    header("Location: ../index.php");
     exit();
 }
 
