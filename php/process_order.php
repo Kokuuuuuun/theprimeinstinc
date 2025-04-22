@@ -12,6 +12,7 @@ if (!isset($_SESSION['user_id']) || !isset($_POST['nombre'])) {
 $table_check = "DESCRIBE pedidos";
 $table_result = mysqli_query($connection, $table_check);
 $telefono_length = 20; // Valor predeterminado
+$numero_tarjeta_es_entero = false; // Variable para verificar si el campo es entero
 
 if ($table_result) {
     while ($row = mysqli_fetch_assoc($table_result)) {
@@ -21,7 +22,13 @@ if ($table_result) {
             if (isset($matches[1])) {
                 $telefono_length = (int)$matches[1];
             }
-            break;
+        }
+
+        // Verificar si el campo numero_tarjeta es de tipo INT
+        if ($row['Field'] == 'numero_tarjeta') {
+            if (strpos(strtolower($row['Type']), 'int') !== false) {
+                $numero_tarjeta_es_entero = true;
+            }
         }
     }
 }
@@ -39,11 +46,23 @@ if (strlen($telefono) > $telefono_length) {
 }
 
 $metodo_pago = mysqli_real_escape_string($connection, $_POST['metodo_pago']);
-$numero_tarjeta = ($metodo_pago === 'tarjeta') ? mysqli_real_escape_string($connection, $_POST['numero_tarjeta']) : '';
+$numero_tarjeta = '';
 
-// Para tarjetas, guarda solo los últimos 4 dígitos por seguridad
-if ($metodo_pago === 'tarjeta' && strlen($numero_tarjeta) > 4) {
-    $numero_tarjeta = '************' . substr($numero_tarjeta, -4);
+// Procesar el número de tarjeta según el tipo de campo en la base de datos
+if ($metodo_pago === 'tarjeta') {
+    $numero_tarjeta_input = mysqli_real_escape_string($connection, $_POST['numero_tarjeta']);
+
+    if ($numero_tarjeta_es_entero) {
+        // Si es un campo INT, guardar solo los últimos 4 dígitos como un número
+        $numero_tarjeta = intval(substr(preg_replace('/[^0-9]/', '', $numero_tarjeta_input), -4));
+    } else {
+        // Si es VARCHAR, guardar con asteriscos para enmascarar
+        if (strlen($numero_tarjeta_input) > 4) {
+            $numero_tarjeta = '****' . substr($numero_tarjeta_input, -4);
+        } else {
+            $numero_tarjeta = $numero_tarjeta_input; // Si es muy corto, guardar tal cual
+        }
+    }
 }
 
 $total = floatval($_POST['total']);
@@ -61,16 +80,32 @@ $query = "INSERT INTO pedidos (nombre, email, direccion, telefono, producto, tot
 
 // Preparar y ejecutar la consulta
 $stmt = mysqli_prepare($connection, $query);
-mysqli_stmt_bind_param($stmt, "sssssdss",
-    $nombre,
-    $email,
-    $direccion,
-    $telefono,
-    $productos,
-    $total,
-    $metodo_pago,
-    $numero_tarjeta
-);
+
+// Ajustar el tipo de bind según el tipo de campo numero_tarjeta
+if ($numero_tarjeta_es_entero) {
+    // Para enteros usar "i" (integer) en bind_param; "j" no es válido en mysqli
+    mysqli_stmt_bind_param($stmt, "sssssdsi",
+        $nombre,
+        $email,
+        $direccion,
+        $telefono,
+        $productos,
+        $total,
+        $metodo_pago,
+        $numero_tarjeta
+    );
+} else {
+    mysqli_stmt_bind_param($stmt, "sssssdss",
+        $nombre,
+        $email,
+        $direccion,
+        $telefono,
+        $productos,
+        $total,
+        $metodo_pago,
+        $numero_tarjeta
+    );
+}
 
 // Ejecutar la consulta y manejar el resultado
 if (mysqli_stmt_execute($stmt)) {
