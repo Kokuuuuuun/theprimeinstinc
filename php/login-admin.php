@@ -135,13 +135,65 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['username'] = $usuario['nombre'];
                 $_SESSION['email'] = $correo;
 
-                // Limpiar recursos
-                $result->free();
-                $stmt->close();
-                $login_connection->close();
+                // Verificar si la columna es_admin existe
+                $check_column = "SHOW COLUMNS FROM usuario LIKE 'es_admin'";
+                $column_result = $login_connection->query($check_column);
 
-                header("Location: ../index.php");
-                exit();
+                // Si la columna no existe, crearla
+                if($column_result && $column_result->num_rows == 0) {
+                    $add_column = "ALTER TABLE usuario ADD COLUMN es_admin TINYINT(1) DEFAULT 0";
+                    $login_connection->query($add_column);
+
+                    // Si el correo es sal@gmail.com o el ID es 1, marcarlo como admin
+                    if($usuario['id'] == 1 || $correo === 'sal@gmail.com') {
+                        $mark_admin = "UPDATE usuario SET es_admin = 1 WHERE id = ?";
+                        $stmt_admin = $login_connection->prepare($mark_admin);
+                        $stmt_admin->bind_param("i", $usuario['id']);
+                        $stmt_admin->execute();
+                        $stmt_admin->close();
+
+                        // Limpiar recursos
+                        $result->free();
+                        $stmt->close();
+                        $login_connection->close();
+
+                        // Redirigir a admin
+                        header("Location: ../admin/index.php");
+                        exit();
+                    } else {
+                        // Limpiar recursos
+                        $result->free();
+                        $stmt->close();
+                        $login_connection->close();
+
+                        // Redirigir a usuario normal
+                        header("Location: ../index.php");
+                        exit();
+                    }
+                } else {
+                    // La columna es_admin existe, verificar si el usuario es admin
+                    // Hacemos una nueva consulta para obtener el valor de es_admin
+                    $admin_query = "SELECT es_admin FROM usuario WHERE id = ? LIMIT 1";
+                    $admin_stmt = $login_connection->prepare($admin_query);
+                    $admin_stmt->bind_param("i", $usuario['id']);
+                    $admin_stmt->execute();
+                    $admin_result = $admin_stmt->get_result();
+                    $admin_info = $admin_result->fetch_assoc();
+
+                    // Limpiar recursos
+                    $admin_result->free();
+                    $admin_stmt->close();
+                    $result->free();
+                    $stmt->close();
+                    $login_connection->close();
+
+                    if(isset($admin_info['es_admin']) && $admin_info['es_admin'] == 1) {
+                        header("Location: ../admin/index.php");
+                    } else {
+                        header("Location: ../index.php");
+                    }
+                    exit();
+                }
             }
         }
 
