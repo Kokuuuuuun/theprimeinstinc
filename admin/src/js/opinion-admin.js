@@ -1,60 +1,59 @@
 /** @format */
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', () => {
   // Menu toggle functionality
   document
-    .getElementById("menu-toggle")
-    ?.addEventListener("click", function () {
-      document.getElementById("menu-links")?.classList.toggle("active");
-      this.classList.toggle("m-active");
+    .getElementById('menu-toggle')
+    ?.addEventListener('click', function () {
+      document.getElementById('menu-links')?.classList.toggle('active');
+      this.classList.toggle('m-active');
     });
 
   // Star rating functionality
-  const stars = document.querySelectorAll(".star");
+  const stars = document.querySelectorAll('.star');
   let selectedRating = 0;
 
   stars.forEach((star, index) => {
-    star.addEventListener("click", () => {
-      // biome-ignore lint/complexity/noForEach: <explanation>
-      stars.forEach((s) => s.classList.remove("active"));
+    star.addEventListener('click', () => {
+      stars.forEach((s) => s.classList.remove('active'));
       for (let i = 0; i <= index; i++) {
-        stars[i].classList.add("active");
+        stars[i].classList.add('active');
       }
       selectedRating = index + 1;
     });
   });
 
   // Submit opinion
-  document.querySelector(".send-icon").addEventListener("click", () => {
-    const commentText = document.querySelector("#input-review").value;
+  document.querySelector('.send-icon').addEventListener('click', () => {
+    const commentText = document.querySelector('#input-review').value;
     if (!commentText.trim()) {
-      alert("Por favor escribe una opinión");
+      alert('Por favor escribe una opinión');
       return;
     }
     if (selectedRating === 0) {
-      alert("Por favor selecciona una calificación");
+      alert('Por favor selecciona una calificación');
       return;
     }
 
     // Create and submit form
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.action = "../php/save_opinion.php"; // Corrigido o caminho
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'save_opinion.php';
 
-    const opinionInput = document.createElement("input");
-    opinionInput.type = "hidden";
-    opinionInput.name = "comment";
+    const opinionInput = document.createElement('input');
+    opinionInput.type = 'hidden';
+    opinionInput.name = 'comment';
     opinionInput.value = commentText;
 
-    const ratingInput = document.createElement("input");
-    ratingInput.type = "hidden";
-    ratingInput.name = "rating";
+    const ratingInput = document.createElement('input');
+    ratingInput.type = 'hidden';
+    ratingInput.name = 'rating';
     ratingInput.value = selectedRating;
 
-    const usernameInput = document.createElement("input");
-    usernameInput.type = "hidden";
-    usernameInput.name = "username";
-    usernameInput.value = document.querySelector(".username").textContent; // Get logged-in username
+    const usernameInput = document.createElement('input');
+    usernameInput.type = 'hidden';
+    usernameInput.name = 'username';
+    usernameInput.value = document.querySelector('.username').textContent; // Get logged-in username
 
     form.appendChild(opinionInput);
     form.appendChild(ratingInput);
@@ -65,55 +64,47 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function deleteComment(commentId) {
-  if (confirm("¿Estás seguro de que deseas eliminar este comentario?")) {
-    fetch("../php/delete_comment.php", {
-      // Corrigido o caminho
-      method: "POST",
+  if (confirm('¿Estás seguro de que deseas eliminar este comentario?')) {
+    fetch('delete_comment.php', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
-      // biome-ignore lint/style/useTemplate: <explanation>
-      body: "id=" + commentId,
+      body: 'id=' + commentId,
     })
-      .then((response) => response.json()) // Corrigido para json em vez de text
+      .then((response) => response.text())
       .then((data) => {
-        if (data.success) {
-          // Corrigido para verificar data.success
+        if (data === 'success') {
           const commentElement = document.querySelector(
             `[data-comment-id="${commentId}"]`
           );
           if (commentElement) {
             commentElement.remove();
           }
-          alert("Comentario eliminado con éxito");
-        } else {
-          alert(
-            data.message || "No tienes permiso para eliminar este comentario"
-          );
         }
       })
       .catch((error) => {
-        console.error("Error:", error);
-        alert("Error al eliminar el comentario");
+        console.error('Error:', error);
+        alert('Comentario eliminado');
       });
   }
 }
 
 // Add user dropdown functionality
-document.addEventListener("DOMContentLoaded", () => {
-  const userIcon = document.getElementById("user-icon");
-  const userDropdown = document.getElementById("user-dropdown");
+document.addEventListener('DOMContentLoaded', function () {
+  const userIcon = document.getElementById('user-icon');
+  const userDropdown = document.getElementById('user-dropdown');
 
   // Toggle dropdown when clicking user icon
-  userIcon.addEventListener("click", (e) => {
+  userIcon.addEventListener('click', function (e) {
     e.stopPropagation();
-    userDropdown.classList.toggle("active");
+    userDropdown.classList.toggle('active');
   });
 
   // Close dropdown when clicking outside
-  document.addEventListener("click", (e) => {
+  document.addEventListener('click', function (e) {
     if (!userDropdown.contains(e.target) && !userIcon.contains(e.target)) {
-      userDropdown.classList.remove("active");
+      userDropdown.classList.remove('active');
     }
   });
 });

@@ -1,47 +1,44 @@
 <?php
+require_once 'conexion.php';
+
 function checkDuplicateEmail($connection, $email, $exclude_id = null) {
+    // Verify connection
+    if (!$connection || $connection->connect_error) {
+        throw new Exception("Error de conexión a la base de datos");
+    }
+
     try {
-        // Ajustar la consulta si se proporciona un ID a excluir (útil para actualizaciones)
+        // Using 'usuario' instead of 'usuarios'
+        $sql = "SELECT id FROM usuario WHERE correo = ?";
+        $params = [$email];
+        $types = "s";
+        
         if ($exclude_id) {
-            $query = "SELECT id FROM usuario WHERE correo = ? AND id != ? LIMIT 1";
-            $stmt = $connection->prepare($query);
-
-            if (!$stmt) {
-                throw new RuntimeException("Error en preparación: " . $connection->error);
-            }
-
-            $stmt->bind_param("si", $email, $exclude_id);
-        } else {
-            $query = "SELECT id FROM usuario WHERE correo = ? LIMIT 1";
-            $stmt = $connection->prepare($query);
-
-            if (!$stmt) {
-                throw new RuntimeException("Error en preparación: " . $connection->error);
-            }
-
-            $stmt->bind_param("s", $email);
+            $sql .= " AND id != ?";
+            $params[] = $exclude_id;
+            $types .= "i";
+        }
+        
+        $stmt = $connection->prepare($sql);
+        if (!$stmt) {
+            throw new Exception("Error en la preparación de la consulta: " . $connection->error);
         }
 
-        $stmt->execute();
+        $stmt->bind_param($types, ...$params);
+        if (!$stmt->execute()) {
+            throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
+        }
 
-        // Almacenar resultados y limpiar buffer
-        $stmt->store_result();
-        $exists = $stmt->num_rows > 0;
+        $result = $stmt->get_result();
+        return $result->num_rows > 0;
 
-        // Limpieza explícita
-        $stmt->free_result();
-        $stmt->close();
-
-        return $exists;
     } catch (Exception $e) {
-        // En caso de error, registrarlo y asegurarnos de cerrar el statement si existe
-        error_log("Error en checkDuplicateEmail: " . $e->getMessage(), 3, __DIR__ . '/../logs/db_errors.log');
-
-        if (isset($stmt) && $stmt) {
-            $stmt->close();
-        }
-
-        // Re-lanzar la excepción para que sea manejada por el código que llama a esta función
-        throw $e;
+        throw new Exception("Error al verificar el correo: " . $e->getMessage());
     }
 }
+
+// Make sure conexion.php exists and has the correct database configuration
+if (!isset($connection)) {
+    die("Error: La conexión a la base de datos no está disponible");
+}
+?>

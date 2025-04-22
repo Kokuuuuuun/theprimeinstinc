@@ -2,44 +2,32 @@
 include("conexion.php");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Validar que los campos no estén vacíos
-    if(empty($_POST['nombre']) || empty($_POST['descripcion']) || empty($_POST['precio'])) {
-        echo "<script>
-            alert('Todos los campos son obligatorios');
-            window.location.href = 'tienda-admin.php';
-        </script>";
-        exit;
+    $nombre = $_POST['nombre'];
+    $descripcion = $_POST['descripcion'];
+    $precio = $_POST['precio'];
+
+    // Definir los directorios de destino
+    $admin_uploads_dir = "../uploads/";
+    $main_uploads_dir = "../../uploads/";
+
+    // Crear los directorios si no existen
+    if (!file_exists($admin_uploads_dir)) {
+        mkdir($admin_uploads_dir, 0777, true);
     }
 
-    $nombre = mysqli_real_escape_string($connection, $_POST['nombre']);
-    $descripcion = mysqli_real_escape_string($connection, $_POST['descripcion']);
-    $precio = floatval($_POST['precio']);
-
-    // Verificar si el producto ya existe
-    $check_sql = "SELECT id FROM productos WHERE nombre = ?";
-    $check_stmt = mysqli_prepare($connection, $check_sql);
-    mysqli_stmt_bind_param($check_stmt, "s", $nombre);
-    mysqli_stmt_execute($check_stmt);
-    mysqli_stmt_store_result($check_stmt);
-
-    if(mysqli_stmt_num_rows($check_stmt) > 0) {
-        echo "<script>
-            alert('Ya existe un producto con ese nombre');
-            window.location.href = 'tienda-admin.php';
-        </script>";
-        exit;
-    }
-
-    // Handle image upload
-    $target_dir = "../../uploads/";
-    if (!file_exists($target_dir)) {
-        mkdir($target_dir, 0777, true);
+    if (!file_exists($main_uploads_dir)) {
+        mkdir($main_uploads_dir, 0777, true);
     }
 
     $imagen = $_FILES['imagen'];
     $imageFileType = strtolower(pathinfo($imagen['name'], PATHINFO_EXTENSION));
     $newFileName = uniqid() . '.' . $imageFileType;
-    $target_file = $target_dir . $newFileName;
+
+    $admin_target_file = $admin_uploads_dir . $newFileName;
+    $main_target_file = $main_uploads_dir . $newFileName;
+
+    // Ruta para guardar en la base de datos (relativa a la raíz del proyecto)
+    $db_file_path = "../uploads/" . $newFileName;
 
     // Validate image
     $valid_types = array('jpg', 'jpeg', 'png', 'gif');
@@ -51,33 +39,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
 
-    if (move_uploaded_file($imagen["tmp_name"], $target_file)) {
-        $relative_path = "/theprimeinstinct/uploads/" . $newFileName;
+    // Subir la imagen a ambos directorios
+    $upload_success = move_uploaded_file($imagen["tmp_name"], $admin_target_file);
 
+    if ($upload_success) {
+        // Copiar la imagen al directorio principal de uploads
+        copy($admin_target_file, $main_target_file);
+
+        // Guardar en la base de datos
         $sql = "INSERT INTO productos (nombre, descripcion, precio, img) VALUES (?, ?, ?, ?)";
         $stmt = mysqli_prepare($connection, $sql);
-
-        if(!$stmt) {
-            echo "<script>
-                alert('Error en la preparación de la consulta: " . mysqli_error($connection) . "');
-                window.location.href = 'tienda-admin.php';
-            </script>";
-            exit;
-        }
-
-        // Agregar índice único en la base de datos
-        // ALTER TABLE productos ADD UNIQUE (nombre);
-
-        mysqli_stmt_bind_param($stmt, "ssds", $nombre, $descripcion, $precio, $relative_path);
+        mysqli_stmt_bind_param($stmt, "ssds", $nombre, $descripcion, $precio, $db_file_path);
 
         if (mysqli_stmt_execute($stmt)) {
-            mysqli_stmt_close($stmt);
-            mysqli_close($connection);
+            // Obtener el ID del producto insertado
+            $producto_id = mysqli_insert_id($connection);
+
             echo "<script>
                 alert('Producto agregado correctamente');
                 window.location.href = 'tienda-admin.php';
             </script>";
-            exit;
         } else {
             echo "<script>
                 alert('Error al guardar en la base de datos: " . mysqli_error($connection) . "');

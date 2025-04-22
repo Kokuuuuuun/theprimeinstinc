@@ -1,63 +1,21 @@
 <?php
+// Conexión a la base de datos
+$conexion = mysqli_connect("localhost", "root", "", "prime");
+
+// Consultas para obtener totales
+$total_usuarios = mysqli_fetch_array(mysqli_query($conexion, "SELECT COUNT(*) as total FROM usuario"))[0];
+$total_productos = mysqli_fetch_array(mysqli_query($conexion, "SELECT COUNT(*) as total FROM productos"))[0];
+$total_pedidos = mysqli_fetch_array(mysqli_query($conexion, "SELECT COUNT(*) as total FROM pedidos"))[0];
+
+// Consulta para pedidos recientes
+$pedidos_recientes = mysqli_query($conexion, "SELECT * FROM pedidos ORDER BY fecha DESC LIMIT 5");
+?>
+
+<?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../../php/login-admin.php");
     exit();
-}
-
-// Activar la visualización de errores para depuración
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-// Incluir el archivo de conexión en lugar de crear una nueva
-include("conexion.php");
-
-// Variables para almacenar totales
-$total_usuarios = 0;
-$total_productos = 0;
-$total_pedidos = 0;
-
-// Intentar obtener totales con manejo de errores adicional
-try {
-    // Obtener total de usuarios
-    $total_usuarios = 0;
-    if ($result = mysqli_query($connection, "SELECT COUNT(*) as total FROM usuario")) {
-        $row = mysqli_fetch_assoc($result);
-        $total_usuarios = $row['total'];
-        mysqli_free_result($result);
-    }
-
-    // Obtener total de productos
-    $total_productos = 0;
-    if ($result = mysqli_query($connection, "SELECT COUNT(*) as total FROM productos")) {
-        $row = mysqli_fetch_assoc($result);
-        $total_productos = $row['total'];
-        mysqli_free_result($result);
-    }
-
-    // Obtener total de pedidos
-    $total_pedido = 0;
-    if ($result = mysqli_query($connection, "SELECT COUNT(*) as total FROM pedidos")) {
-        $row = mysqli_fetch_assoc($result);
-        $total_pedido = $row['total'];
-        mysqli_free_result($result);
-    }
-
-    // Obtener pedidos recientes
-    $pedidos_recientes = null;
-    try {
-        $query_pedidos = "SELECT * FROM pedidos ORDER BY id DESC LIMIT 5";
-        $pedidos_recientes = mysqli_query($connection, $query_pedidos);
-        if (!$pedidos_recientes) {
-            throw new Exception("Error al obtener pedidos recientes: " . mysqli_error($connection));
-        }
-    } catch (Exception $e) {
-        echo "Error: " . $e->getMessage();
-    }
-
-} catch (Exception $e) {
-    echo "Error en las consultas: " . $e->getMessage();
 }
 ?>
 
@@ -90,17 +48,17 @@ try {
                 <a class="selected-link" href="dashboard.php">Dashboard</a>
             </div>
             <div class="user">
-                <div class="user-icon" id="user-icon">
-                    <i class='bx bxs-user-circle'></i>>
-                </div>
-                <div class="user-dropdown" id="user-dropdown">
-                    <div class="user-info">
-                        <span class="username"><?php echo isset($_SESSION['username']) ? $_SESSION['username'] : 'Usuario'; ?></span>
-                        <span class="email"><?php echo isset($_SESSION['email']) ? $_SESSION['email'] : 'email@ejemplo.com'; ?></span>
-                    </div>
-                    <a href="logout.php" class="logout-btn">Cerrar sesión</a>
-                </div>
-            </div>
+          <div class="user-icon" id="user-icon">
+              <i class='bx bxs-user-circle' ></i>
+          </div>
+          <div class="user-dropdown" id="user-dropdown">
+              <div class="user-info">
+                  <span class="username"><?php echo $_SESSION['username']; ?></span>
+                  <span class="email"><?php echo $_SESSION['email']; ?></span>
+              </div>
+              <a href="php/logout.php" class="logout-btn">Cerrar sesión</a>
+          </div>
+      </div>
         </nav>
     </header>
 
@@ -118,7 +76,7 @@ try {
                 <div class="stat-title">Total Productos</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number"><?php echo $total_pedido; ?></div>
+                <div class="stat-number"><?php echo $total_pedidos; ?></div>
                 <div class="stat-title">Total Pedidos</div>
             </div>
         </div>
@@ -139,10 +97,7 @@ try {
                     </tr>
                 </thead>
                 <tbody>
-                    <?php
-                    if ($pedidos_recientes && mysqli_num_rows($pedidos_recientes) > 0) {
-                        while($pedido = mysqli_fetch_assoc($pedidos_recientes)) {
-                    ?>
+                    <?php while($pedido = mysqli_fetch_assoc($pedidos_recientes)) { ?>
                         <tr>
                             <td><?php echo $pedido['id']; ?></td>
                             <td><?php echo $pedido['nombre']; ?></td>
@@ -153,12 +108,7 @@ try {
                             <td>$<?php echo $pedido['total']; ?></td>
                             <td><?php echo $pedido['fecha']; ?></td>
                         </tr>
-                    <?php
-                        }
-                    } else {
-                        echo "<tr><td colspan='8'>No hay pedidos recientes</td></tr>";
-                    }
-                    ?>
+                    <?php } ?>
                 </tbody>
             </table>
         </div>
@@ -167,7 +117,7 @@ try {
     <footer>
         <div class="footer-content">
           <div class="footer-icons">
-            <img src="../img/logo.png" class="footer-logo" alt="">
+            <img src="img/logo.png" class="footer-logo" alt="">
             <div class="social-icon">
               <i class='bx bxl-facebook-square'></i>
               <i class='bx bxl-instagram-alt' ></i>
@@ -179,18 +129,21 @@ try {
              <a href="#">Aviso legal</a>
              <a href="#">Politica de privacidad</a>
              <a href="#">Términos y condiciones</a>
+            </ul>
           </div>
           <div class="footer-links">
              <h3>AYUDA</h3>
              <a href="#">Seguimiento de pedidos</a>
              <a href="#">Política de devoluciones</a>
              <a href="#">Preguntas frecuentes</a>
+            </ul>
           </div>
           <div class="footer-links">
              <h3>SOBRE NOSOTROS</h3>
              <a href="#">Nuestra historia</a>
              <a href="#">Blog</a>
              <a href="#">Feedbacks</a>
+            </ul>
           </div>
           <form class="newsletter">
             <h3>SUSCRIBTETE</h3>

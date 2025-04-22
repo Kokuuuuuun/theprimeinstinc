@@ -100,13 +100,13 @@ $email = isset($_SESSION['email']) ? $_SESSION['email'] : '';
 <body>
     <div class="checkout-container">
         <h2>Finalizar Compra</h2>
-        
+
         <div class="order-summary">
             <h3>Resumen del Pedido</h3>
             <div class="checkout-items">
                 <?php foreach ($products as $product): ?>
                     <div class="checkout-item">
-                        <img src="<?php echo htmlspecialchars($product['image']); ?>" 
+                        <img src="<?php echo htmlspecialchars($product['image']); ?>"
                              alt="<?php echo htmlspecialchars($product['name']); ?>">
                         <div class="checkout-item-details">
                             <h4><?php echo htmlspecialchars($product['name']); ?></h4>
@@ -128,23 +128,23 @@ $email = isset($_SESSION['email']) ? $_SESSION['email'] : '';
                 <input type="text" id="nombre" name="nombre" >
                 <div id="nombre-error" class="error-message">Por favor, ingrese su nombre completo.</div>
             </div>
-            
+
             <div class="form-group">
                 <label for="email">Email:</label>
                 <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>">
                 <div id="email-error" class="error-message">Por favor, ingrese un email válido.</div>
             </div>
-            
+
             <div class="form-group">
                 <label for="direccion">Dirección de Envío:</label>
                 <input type="text" id="direccion" name="direccion" >
                 <div id="direccion-error" class="error-message">Por favor, ingrese su dirección de envío.</div>
             </div>
-            
+
             <div class="form-group">
-                <label for="telefono">Teléfono:</label>
-                <input type="text" id="telefono" placeholder="123-456-7890" maxlength="12" name="telefono">
-                <div id="telefono-error" class="error-message">Por favor, ingrese un número de teléfono válido.</div>
+                <label for="telefono">Teléfono (max 15 caracteres):</label>
+                <input type="tel" id="telefono" placeholder="123-456-7890" maxlength="15" name="telefono" pattern="[0-9+\- ]{3,15}">
+                <div id="telefono-error" class="error-message">Por favor, ingrese un número de teléfono válido (máximo 15 caracteres).</div>
             </div>
 
             <div class="payment-methods">
@@ -162,7 +162,7 @@ $email = isset($_SESSION['email']) ? $_SESSION['email'] : '';
             <div id="card-fields" class="card-fields active">
                 <div class="form-group">
                     <label for="numero_tarjeta">Número de Tarjeta:</label>
-                    <input type="text" id="numero_tarjeta" name="numero_tarjeta" 
+                    <input type="text" id="numero_tarjeta" name="numero_tarjeta"
                            placeholder="1234-5678-9012-3456" maxlength="19">
                     <div id="card-error" class="error-message">Por favor, ingrese un número de tarjeta válido.</div>
                 </div>
@@ -172,7 +172,7 @@ $email = isset($_SESSION['email']) ? $_SESSION['email'] : '';
                 <input type="hidden" name="productos[<?php echo $key; ?>][nombre]" value="<?php echo htmlspecialchars($product['name']); ?>">
                 <input type="hidden" name="productos[<?php echo $key; ?>][cantidad]" value="<?php echo htmlspecialchars($product['quantity']); ?>">
             <?php endforeach; ?>
-            
+
             <input type="hidden" name="total" value="<?php echo $total; ?>">
             <button type="submit" class="btn-submit">Confirmar Compra</button>
         </form>
@@ -193,32 +193,36 @@ $email = isset($_SESSION['email']) ? $_SESSION['email'] : '';
         });
 
         document.getElementById('telefono').addEventListener('input', function(e) {
-            // Get just the numbers
-            let input = e.target.value.replace(/\D/g, '');
-            
-            // Limit to 10 digits
-            input = input.substring(0, 10);
-            
-            // Format the number
-            const size = input.length;
-            if (size === 0) {
-                e.target.value = '';
-            } else if (size < 4) {
-                e.target.value = input;
-            } else if (size < 7) {
-                e.target.value = `${input.slice(0, 3)}-${input.slice(3)}`;
+            // Permitir solo números, +, -, y espacios
+            let input = e.target.value.replace(/[^\d+\- ]/g, '');
+
+            // Limitar a 15 caracteres para asegurar compatibilidad con la BD
+            input = input.substring(0, 15);
+
+            // Formatear el número si son todos dígitos
+            if (!/[+\- ]/.test(input)) {
+                const size = input.length;
+                if (size === 0) {
+                    e.target.value = '';
+                } else if (size < 4) {
+                    e.target.value = input;
+                } else if (size < 7) {
+                    e.target.value = `${input.slice(0, 3)}-${input.slice(3)}`;
+                } else {
+                    e.target.value = `${input.slice(0, 3)}-${input.slice(3, 6)}-${input.slice(6, 15)}`;
+                }
             } else {
-                e.target.value = `${input.slice(0, 3)}-${input.slice(3, 6)}-${input.slice(6)}`;
+                e.target.value = input;
             }
         });
 
         document.getElementById('numero_tarjeta').addEventListener('input', function(e) {
             // Remove any non-digit character
             let input = e.target.value.replace(/\D/g, '');
-            
+
             // Limit to 16 digits
             input = input.substring(0, 16);
-            
+
             // Format the number
             let formattedValue = '';
             for (let i = 0; i < input.length; i++) {
@@ -227,18 +231,18 @@ $email = isset($_SESSION['email']) ? $_SESSION['email'] : '';
                 }
                 formattedValue += input[i];
             }
-            
+
             e.target.value = formattedValue;
         });
 
         document.querySelector('form').addEventListener('submit', function(e) {
             e.preventDefault();
             let isValid = true;
-            
+
             // Clear previous errors
             document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
             document.querySelectorAll('.error-message').forEach(el => el.classList.remove('visible'));
-            
+
             // Validate Name
             const nombre = document.getElementById('nombre');
             if (!nombre.value.trim()) {
@@ -246,7 +250,7 @@ $email = isset($_SESSION['email']) ? $_SESSION['email'] : '';
                 document.getElementById('nombre-error').classList.add('visible');
                 isValid = false;
             }
-            
+
             // Validate Email
             const email = document.getElementById('email');
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -255,7 +259,7 @@ $email = isset($_SESSION['email']) ? $_SESSION['email'] : '';
                 document.getElementById('email-error').classList.add('visible');
                 isValid = false;
             }
-            
+
             // Validate Address
             const direccion = document.getElementById('direccion');
             if (!direccion.value.trim()) {
@@ -263,27 +267,31 @@ $email = isset($_SESSION['email']) ? $_SESSION['email'] : '';
                 document.getElementById('direccion-error').classList.add('visible');
                 isValid = false;
             }
-            
-            // Validate Phone
+
+            // Validate Phone Number - use more flexible validation
             const telefono = document.getElementById('telefono');
-            const phoneRegex = /^\d{3}-\d{3}-\d{4}$/;
+            const phoneRegex = /^[0-9+\- ]{3,15}$/;
             if (!telefono.value.trim() || !phoneRegex.test(telefono.value)) {
                 telefono.classList.add('error');
                 document.getElementById('telefono-error').classList.add('visible');
                 isValid = false;
             }
-            
-            // Validate Card Number if payment method is card
-            if (document.getElementById('tarjeta').checked) {
+
+            // Validate Credit Card if needed
+            const metodoPago = document.querySelector('input[name="metodo_pago"]:checked').value;
+            if (metodoPago === 'tarjeta') {
                 const numeroTarjeta = document.getElementById('numero_tarjeta');
-                const cardRegex = /^\d{4}-\d{4}-\d{4}-\d{4}$/;
-                if (!numeroTarjeta.value.trim() || !cardRegex.test(numeroTarjeta.value)) {
+                // Permitir más formatos de tarjeta, solo verificando que tenga entre 13 y 19 caracteres
+                // y que contenga solo números, espacios o guiones
+                const cardRegex = /^[0-9\- ]{13,19}$/;
+
+                if (!numeroTarjeta.value.trim() || !cardRegex.test(numeroTarjeta.value.replace(/[^0-9\- ]/g, ''))) {
                     numeroTarjeta.classList.add('error');
                     document.getElementById('card-error').classList.add('visible');
                     isValid = false;
                 }
             }
-            
+
             if (isValid) {
                 this.submit();
             }

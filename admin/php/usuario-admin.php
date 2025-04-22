@@ -20,9 +20,20 @@ if (!isset($_SESSION['user_id'])) {
     <title>Usuarios</title>
   </head>
   <body>
-    <?php 
+    <?php
     include("conexion.php");
-    $sql = "select * from usuario"; 
+
+    // Verificar si la columna es_admin existe
+    $check_column = "SHOW COLUMNS FROM usuario LIKE 'es_admin'";
+    $column_result = mysqli_query($connection, $check_column);
+
+    // Si la columna no existe, crearla
+    if(mysqli_num_rows($column_result) == 0) {
+        $add_column = "ALTER TABLE usuario ADD COLUMN es_admin TINYINT(1) DEFAULT 0";
+        mysqli_query($connection, $add_column);
+    }
+
+    $sql = "select * from usuario";
     $resultado = mysqli_query($connection,$sql);
 ?>
     <header>
@@ -51,7 +62,7 @@ if (!isset($_SESSION['user_id'])) {
                   <span class="username"><?php echo $_SESSION['username']; ?></span>
                   <span class="email"><?php echo $_SESSION['email']; ?></span>
               </div>
-              <a href="logout.php" class="logout-btn">Cerrar sesión</a>
+              <a href="php/logout.php" class="logout-btn">Cerrar sesión</a>
           </div>
       </div>
       </nav>
@@ -70,7 +81,7 @@ if (!isset($_SESSION['user_id'])) {
           <i class="bx bx-plus"></i> Añadir Usuario
            </button>
       </div>
-          
+
       </div>
 
       <div class="users-table">
@@ -81,6 +92,7 @@ if (!isset($_SESSION['user_id'])) {
               <th>Usuario</th>
               <th>Email</th>
               <th>Contraseña</th>
+              <th>Administrador</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -88,18 +100,18 @@ if (!isset($_SESSION['user_id'])) {
             <?php
                 while($fila = mysqli_fetch_assoc($resultado)){
 
-                 
             ?>
             <tr>
               <td><?php echo $fila['id'] ?></td>
               <td><?php echo $fila['nombre'] ?></td>
               <td><?php echo $fila['correo'] ?></td>
               <td><?php echo $fila['contraseña'] ?></td>
+              <td><?php echo isset($fila['es_admin']) && $fila['es_admin'] ? 'Sí' : 'No' ?></td>
               <td class="actions">
                 <?php echo "<a href='editar.php?id=".$fila['id']."'><button class='action-btn edit'>
                     <i class='bx bx-edit'></i>
-                </button></a>"; ?> 
-                
+                </button></a>"; ?>
+
                 <?php echo "<a href='delete_user.php?id=".$fila['id']."'><button class='action-btn delete'>
                     <i class='bx bx-trash'></i>
                 </button></a>"; ?>
@@ -136,6 +148,12 @@ if (!isset($_SESSION['user_id'])) {
                   <input type="password" id="edit-password" name="password">
                   <div class="error-message" id="password-error">La contraseña debe tener al menos 6 caracteres</div>
               </div>
+              <div class="form-group checkbox-group">
+                  <label for="edit-es-admin">
+                      <input type="checkbox" id="edit-es-admin" name="es_admin">
+                      Es administrador
+                  </label>
+              </div>
               <button type="submit" class="btn-submit">Actualizar Usuario</button>
           </form>
       </div>
@@ -159,6 +177,12 @@ if (!isset($_SESSION['user_id'])) {
                   <label for="add-password">Contraseña:</label>
                   <input type="password" id="add-password" name="contraseña">
                   <div class="error-message" id="add-password-error">La contraseña es requerida</div>
+              </div>
+              <div class="form-group checkbox-group">
+                  <label for="add-es-admin">
+                      <input type="checkbox" id="add-es-admin" name="es_admin">
+                      Es administrador
+                  </label>
               </div>
               <button type="submit" class="btn-submit">Añadir Usuario</button>
           </form>

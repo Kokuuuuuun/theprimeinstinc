@@ -347,7 +347,7 @@ main{
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin: 0px;
+    margin: 0px;;
 }
 
 .text-presentation{
@@ -355,8 +355,6 @@ main{
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    position: relative;
-    top: 100px;
 }
 
 .image-presentation{
@@ -379,16 +377,12 @@ main{
     font-size: 60px;
     color: var(--main-color);
     font-weight: 200;
-    margin-top: 20px;
-    
 }
 
-.sipno {
+.sipno{
    text-align: center;
    color:var(--second-color);
    font-size: 20px;
-   position: absolute;
-
 }
 
 .products-button{

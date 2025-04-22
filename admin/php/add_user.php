@@ -1,10 +1,9 @@
 <?php
 include("conexion.php");
 
-$id = trim($_POST['id']);
 $nombre = trim($_POST['nombre']);
 $correo = trim($_POST['correo']);
-$password = trim($_POST['password']);
+$password = trim($_POST['contraseña']);
 $es_admin = isset($_POST['es_admin']) ? 1 : 0;
 
 // Server-side validation
@@ -23,10 +22,20 @@ if(!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
     exit();
 }
 
-// Check if email exists for other users
-$check_email = "SELECT COUNT(*) FROM usuario WHERE correo = ? AND id != ?";
+if(empty($password)) {
+    echo json_encode(['success' => false, 'error' => 'La contraseña es requerida']);
+    exit();
+}
+
+if(strlen($password) < 6) {
+    echo json_encode(['success' => false, 'error' => 'La contraseña debe tener al menos 6 caracteres']);
+    exit();
+}
+
+// Check if email already exists
+$check_email = "SELECT COUNT(*) FROM usuario WHERE correo = ?";
 $stmt = mysqli_prepare($connection, $check_email);
-mysqli_stmt_bind_param($stmt, "si", $correo, $id);
+mysqli_stmt_bind_param($stmt, "s", $correo);
 mysqli_stmt_execute($stmt);
 mysqli_stmt_bind_result($stmt, $count);
 mysqli_stmt_fetch($stmt);
@@ -37,20 +46,12 @@ if($count > 0) {
     exit();
 }
 
-if(!empty($password)) {
-    if(strlen($password) < 6) {
-        echo json_encode(['success' => false, 'error' => 'La contraseña debe tener al menos 6 caracteres']);
-        exit();
-    }
-    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-    $sql = "UPDATE usuario SET nombre = ?, correo = ?, contraseña = ?, es_admin = ? WHERE id = ?";
-    $stmt = mysqli_prepare($connection, $sql);
-    mysqli_stmt_bind_param($stmt, "sssii", $nombre, $correo, $hashed_password, $es_admin, $id);
-} else {
-    $sql = "UPDATE usuario SET nombre = ?, correo = ?, es_admin = ? WHERE id = ?";
-    $stmt = mysqli_prepare($connection, $sql);
-    mysqli_stmt_bind_param($stmt, "ssii", $nombre, $correo, $es_admin, $id);
-}
+$hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+// Insert user with the es_admin field
+$sql = "INSERT INTO usuario (nombre, correo, contraseña, es_admin) VALUES (?, ?, ?, ?)";
+$stmt = mysqli_prepare($connection, $sql);
+mysqli_stmt_bind_param($stmt, "sssi", $nombre, $correo, $hashed_password, $es_admin);
 
 $success = mysqli_stmt_execute($stmt);
 

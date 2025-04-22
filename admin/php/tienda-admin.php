@@ -44,7 +44,7 @@ if (!isset($_SESSION['user_id'])) {
               </div>
               <a href="php/logout.php" class="logout-btn">Cerrar sesión</a>
           </div>
-        
+
         <i id="cart-icon" class='bx bx-cart' ></i>
         <div id="cart-div" class="cart-div">
           <h3>Carrito de Compras</h3>
@@ -88,7 +88,7 @@ if (!isset($_SESSION['user_id'])) {
 
       <div id="product-modal" class="modal">
         <div class="modal-content">
-            <button id="close-modal" class="close-modal"><i class='bx bx-x'></i></button> 
+            <button id="close-modal" class="close-modal"><i class='bx bx-x'></i></button>
             <h2>Añadir Nuevo Producto</h2>
             <form action="add_product.php" method="POST" enctype="multipart/form-data" id="add-product-form">
                 <div class="form-group">
@@ -96,19 +96,19 @@ if (!isset($_SESSION['user_id'])) {
                     <input type="text" id="nombre" class="inputarea" name="nombre">
                     <span class="error-message" id="nombre-error"></span>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="descripcion">Descripción:</label>
                     <textarea id="descripcion" class="inputarea" name="descripcion"></textarea>
                     <span class="error-message" id="descripcion-error"></span>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="precio">Precio:</label>
                     <input type="number" id="precio" class="inputarea" name="precio" step="0.01">
                     <span class="error-message" id="precio-error"></span>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="imagen">Imagen:</label>
                     <input type="file" id="imagen" class="inputarea" name="imagen" accept="image/*">
@@ -120,23 +120,37 @@ if (!isset($_SESSION['user_id'])) {
         </div>
     </div>
 
-        <div class="products">
+      <div class="products">
           <?php
             include("conexion.php");
-            
-            $sql = "SELECT * FROM productos ORDER BY id DESC";
-            $resultado = mysqli_query($connection, $sql);
-            
-            while($producto = mysqli_fetch_assoc($resultado)) {
+
+            // Verificar si la tabla productos existe
+            $table_check = "SHOW TABLES LIKE 'productos'";
+            $table_result = mysqli_query($connection, $table_check);
+
+            if ($table_result && mysqli_num_rows($table_result) == 0) {
+                echo "<p>No se encontró la tabla de productos. <a href='check_products_table.php'>Haga clic aquí para crearla</a>.</p>";
+            } else {
+                $sql = "SELECT * FROM productos ORDER BY id DESC";
+                $resultado = mysqli_query($connection, $sql);
+
+                if ($resultado && mysqli_num_rows($resultado) > 0) {
+                    while($producto = mysqli_fetch_assoc($resultado)) {
+                        // Asegurar que la ruta de la imagen sea correcta
+                        $img_path = $producto['img'];
+                        // Si la ruta no comienza con "../", añadirlo
+                        if (strpos($img_path, "../") !== 0 && strpos($img_path, "http") !== 0) {
+                            $img_path = "../" . $img_path;
+                        }
             ?>
                 <div class="product-container">
-                    <img class="product" src="<?php echo $producto['img']; ?>" alt="<?php echo $producto['nombre']; ?>">
+                    <img class="product" src="<?php echo $img_path; ?>" alt="<?php echo $producto['nombre']; ?>">
                     <h3><?php echo $producto['nombre']; ?></h3>
                     <p><?php echo $producto['descripcion']; ?></p>
                     <p class="price">$<?php echo number_format($producto['precio'], 2); ?></p>
-                    <button class="buy" onclick="addToCart('<?php echo htmlspecialchars($producto['nombre']); ?>', 
-                        <?php echo $producto['precio']; ?>, 
-                        '<?php echo htmlspecialchars($producto['img']); ?>')">
+                    <button class="buy" onclick="addToCart('<?php echo htmlspecialchars($producto['nombre']); ?>',
+                        <?php echo $producto['precio']; ?>,
+                        '<?php echo htmlspecialchars($img_path); ?>')">
                         Comprar
                     </button>
                     <div class="admin-actions">
@@ -149,9 +163,25 @@ if (!isset($_SESSION['user_id'])) {
                     </div>
                 </div>
             <?php
+                    }
+                } else {
+                    echo "<p>No hay productos para mostrar. <a href='#' id='add-product-link'>Añadir un producto</a></p>";
+                }
             }
             mysqli_close($connection);
             ?>
+
+            <!-- Enlace para el diagnóstico -->
+            <div class="admin-tools" style="margin-top: 20px; text-align: center;">
+                <p>
+                    <a href="check_uploads_dir.php" style="margin-right: 10px;">Diagnóstico de imágenes</a>
+                    <a href="fix_image_paths.php" style="margin-right: 10px;">Reparar rutas de imágenes</a>
+                    <a href="fix_uploads_dir.php" style="margin-right: 10px;">Sincronizar directorios de uploads</a>
+                    <a href="check_orders_table.php">Verificar tabla de pedidos</a>
+                </p>
+            </div>
+
+      </div>
      </main>
      <footer>
       <div class="footer-content">

@@ -25,12 +25,12 @@ foreach ($_POST['productos'] as $producto) {
 $productos = mysqli_real_escape_string($connection, implode(', ', $productos_array));
 
 // Preparar la consulta SQL
-$query = "INSERT INTO pedidos (nombre, email, direccion, telefono, producto, total, metodo_pago, numero_tarjeta)
+$query = "INSERT INTO pedidos (nombre, email, direccion, telefono, producto, total, metodo_pago, numero_tarjeta) 
           VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
 // Preparar y ejecutar la consulta
 $stmt = mysqli_prepare($connection, $query);
-mysqli_stmt_bind_param($stmt, "sssssdss",
+mysqli_stmt_bind_param($stmt, "sssssdss", 
     $nombre,
     $email,
     $direccion,

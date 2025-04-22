@@ -65,7 +65,6 @@ if (!isset($_SESSION['user_id'])) {
           </div>
       </div>
 
-
       <div class="filters">
           <div class="search-filter">
               <i class='bx bx-search search-icon'></i>
@@ -80,14 +79,13 @@ if (!isset($_SESSION['user_id'])) {
           </div>
       </div>
 
-
         <div class="products">
           <?php
             include("conexion.php");
-            
+
             $sql = "SELECT * FROM productos ORDER BY id DESC";
             $resultado = mysqli_query($connection, $sql);
-            
+
             while($producto = mysqli_fetch_assoc($resultado)) {
             ?>
                 <div class="product-container">
@@ -95,17 +93,29 @@ if (!isset($_SESSION['user_id'])) {
                     <h3><?php echo $producto['nombre']; ?></h3>
                     <p><?php echo $producto['descripcion']; ?></p>
                     <p class="price">$<?php echo number_format($producto['precio'], 2); ?></p>
-                    <button class="buy" onclick="addToCart('<?php echo htmlspecialchars($producto['nombre']); ?>', 
-                        <?php echo $producto['precio']; ?>, 
+                    <button class="buy" onclick="addToCart('<?php echo htmlspecialchars($producto['nombre']); ?>',
+                        <?php echo $producto['precio']; ?>,
                         '<?php echo htmlspecialchars($producto['img']); ?>')">
                         Comprar
                     </button>
-
                 </div>
             <?php
             }
+
+            if (mysqli_num_rows($resultado) == 0) {
+                echo "<p style='text-align: center;'>No hay productos disponibles en este momento.</p>";
+            }
+
             mysqli_close($connection);
             ?>
+
+            <!-- Herramientas de diagnóstico -->
+            <div class="admin-tools" style="margin-top: 20px; text-align: center;">
+                <p>
+                    <a href="check_orders_table.php" style="display: inline-block; background-color: #007bff; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; margin-top: 10px;">Verificar tabla de pedidos</a>
+                </p>
+            </div>
+        </div>
      </main>
      <footer>
       <div class="footer-content">

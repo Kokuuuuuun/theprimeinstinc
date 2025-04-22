@@ -160,7 +160,5 @@ if (!isset($_SESSION['user_id'])) {
       </footer>
 </body>
 
-<script src="../src/js/opinion-admin.js">
-  
-</script>
+<script src="../src/js/opinion-admin.js"></script>
 </html>

@@ -26,10 +26,12 @@ document.addEventListener('DOMContentLoaded', function () {
       e.preventDefault();
       const row = this.closest('tr');
       const id = this.closest('a').href.split('=')[1];
+      const isAdmin = row.cells[4].textContent.trim() === 'Sí';
 
       document.getElementById('edit-id').value = id;
       document.getElementById('edit-nombre').value = row.cells[1].textContent;
       document.getElementById('edit-correo').value = row.cells[2].textContent;
+      document.getElementById('edit-es-admin').checked = isAdmin;
       modal.style.display = 'block';
     };
   });
@@ -55,6 +57,11 @@ document.addEventListener('DOMContentLoaded', function () {
     e.preventDefault();
     if (validateForm()) {
       const formData = new FormData(this);
+
+      // Manejar el checkbox
+      if (!formData.has('es_admin')) {
+        formData.append('es_admin', '0');
+      }
 
       fetch('update_user.php', {
         method: 'POST',
@@ -87,6 +94,11 @@ document.addEventListener('DOMContentLoaded', function () {
     e.preventDefault();
     if (validateAddForm()) {
       const formData = new FormData(this);
+
+      // Manejar el checkbox
+      if (!formData.has('es_admin')) {
+        formData.append('es_admin', '0');
+      }
 
       fetch('add_user.php', {
         method: 'POST',
@@ -123,13 +135,13 @@ document.addEventListener('DOMContentLoaded', function () {
     tableRows.forEach((row) => {
       const nombre = row.cells[1].textContent.toLowerCase();
       const correo = row.cells[2].textContent.toLowerCase();
-      const password = row.cells[3].textContent.toLowerCase();
+      const isAdmin = row.cells[4].textContent.toLowerCase();
 
       // Check if any of the fields contain the search term
       const matches =
         nombre.includes(searchTerm) ||
         correo.includes(searchTerm) ||
-        password.includes(searchTerm);
+        isAdmin.includes(searchTerm);
 
       // Show/hide row based on match
       row.style.display = matches ? '' : 'none';
@@ -344,6 +356,17 @@ document.addEventListener('DOMContentLoaded', function () {
             color: red;
             font-size: 0.8em;
             margin-top: 5px;
+        }
+        .error-message.show {
+            display: block;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 8px;
         }
     </style>
 `

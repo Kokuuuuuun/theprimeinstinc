@@ -39,17 +39,17 @@ try {
 
     // Hash password and save user to 'usuario' table
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
+    
     // Corrected table name from 'usuarios' to 'usuario'
     $sql = "INSERT INTO usuario (nombre, correo, contraseña) VALUES (?, ?, ?)";
     $stmt = $connection->prepare($sql);
-
+    
     if (!$stmt) {
         throw new Exception("Error en la preparación de la consulta: " . $connection->error);
     }
 
     $stmt->bind_param("sss", $nombre, $email, $hashed_password);
-
+    
     if ($stmt->execute()) {
         echo '<script>
             alert("Usuario registrado correctamente");
