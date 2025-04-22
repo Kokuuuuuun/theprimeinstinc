@@ -20,9 +20,9 @@ if (file_exists(ENV_PATH)) {
 // Parámetros de conexión
 // ===================================================
 $db_config = [
-    'host' => $_ENV['DB_HOST'] ?? '10.0.1.6',
+    'host' => $_ENV['DB_HOST'] ?? '172.20.1.7',
     'user' => $_ENV['DB_USER'] ?? 'root',
-    'pass' => $_ENV['DB_PASSWORD'] ?? 'ONflEz9QYm64VDg9FdZqjeEQqanwhsxn31u1HTCHlX6dJh3OdPuWSHrA2lHTrXsV',
+    'pass' => $_ENV['DB_PASSWORD'] ?? '1234567890',
     'db' => $_ENV['DB_NAME'] ?? 'prime',
     'port' => $_ENV['DB_PORT'] ?? 3306,
     'charset' => $_ENV['DB_CHARSET'] ?? 'utf8mb4'
