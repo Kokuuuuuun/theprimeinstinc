@@ -1,16 +1,12 @@
 <?php
-// Conexión a la base de datos
 $conexion = mysqli_connect("172.20.1.7", "root", "1234567890", "prime");
 
-// Consultas para obtener totales
 $total_usuarios = mysqli_fetch_array(mysqli_query($conexion, "SELECT COUNT(*) as total FROM usuario"))[0];
 $total_productos = mysqli_fetch_array(mysqli_query($conexion, "SELECT COUNT(*) as total FROM productos"))[0];
 $total_pedidos = mysqli_fetch_array(mysqli_query($conexion, "SELECT COUNT(*) as total FROM pedidos"))[0];
 
-// Consulta para pedidos recientes
 $pedidos_recientes = mysqli_query($conexion, "SELECT * FROM pedidos ORDER BY fecha DESC LIMIT 5");
 ?>
-
 <?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
