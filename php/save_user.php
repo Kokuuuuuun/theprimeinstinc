@@ -1,13 +1,44 @@
 <?php
-require_once 'conexion.php';
+// En lugar de require_once 'conexion.php', creamos nuestra propia conexión
 require_once 'check_email.php';
+
+// Configuración de entorno
+if (file_exists(__DIR__ . '/../.env')) {
+    $env = parse_ini_file(__DIR__ . '/../.env', false, INI_SCANNER_TYPED);
+    foreach ($env as $key => $value) {
+        $_ENV[$key] = $value;
+        putenv("$key=$value");
+    }
+}
+
+// Parámetros de conexión
+$db_config = [
+    'host' => $_ENV['DB_HOST'] ?? '172.20.1.7',
+    'user' => $_ENV['DB_USER'] ?? 'root',
+    'pass' => $_ENV['DB_PASSWORD'] ?? '1234567890',
+    'db' => $_ENV['DB_NAME'] ?? 'prime',
+    'port' => $_ENV['DB_PORT'] ?? 3306,
+    'charset' => $_ENV['DB_CHARSET'] ?? 'utf8mb4'
+];
+
+// Crear la conexión específica para este script
+$connection = new mysqli(
+    $db_config['host'],
+    $db_config['user'],
+    $db_config['pass'],
+    $db_config['db'],
+    $db_config['port']
+);
+
+// Establecer charset
+$connection->set_charset($db_config['charset']);
 
 // Generar nonce para CSP
 $nonce = base64_encode(random_bytes(16));
 
 try {
     if (!isset($connection) || $connection->connect_error) {
-        throw new Exception("Error de conexión a la base de datos");
+        throw new Exception("Error de conexión a la base de datos: " . $connection->connect_error);
     }
 
     // Sanitización moderna y validación
@@ -107,4 +138,3 @@ try {
     </script>';
     exit();
 }
-?>

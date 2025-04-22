@@ -21,46 +21,94 @@ if (isset($_GET['error'])) {
     }
 }
 
-// Database connectivity test
+// Database connectivity test - use its own connection
 $db_status = '';
+$test_connection = null;
 try {
-    if (!isset($connection)) {
-        require_once 'conexion.php';
+    // Crear una conexión específica para esta prueba
+    if (file_exists(__DIR__ . '/../.env')) {
+        $env = parse_ini_file(__DIR__ . '/../.env', false, INI_SCANNER_TYPED);
+        foreach ($env as $key => $value) {
+            $_ENV[$key] = $value;
+            putenv("$key=$value");
+        }
     }
 
-    if ($connection->connect_error) {
-        throw new Exception("Error de conexión: " . $connection->connect_error);
+    $db_config = [
+        'host' => $_ENV['DB_HOST'] ?? '172.20.1.7',
+        'user' => $_ENV['DB_USER'] ?? 'root',
+        'pass' => $_ENV['DB_PASSWORD'] ?? '1234567890',
+        'db' => $_ENV['DB_NAME'] ?? 'prime',
+        'port' => $_ENV['DB_PORT'] ?? 3306
+    ];
+
+    $test_connection = new mysqli(
+        $db_config['host'],
+        $db_config['user'],
+        $db_config['pass'],
+        $db_config['db'],
+        $db_config['port']
+    );
+
+    if ($test_connection->connect_error) {
+        throw new Exception("Error de conexión: " . $test_connection->connect_error);
     }
 
     // Check if the 'usuario' table exists and has data
-    $query = "SHOW TABLES LIKE 'usuario'";
-    $stmt = $connection->prepare($query);
+    $result = $test_connection->query("SHOW TABLES LIKE 'usuario'");
 
-    if (!$stmt) {
-        throw new Exception("Error en preparación: " . $connection->error);
-    }
-
-    $stmt->execute();
-    $stmt->store_result();
-
-    if ($stmt->num_rows > 0) {
+    if ($result && $result->num_rows > 0) {
         $db_status = 'conectado';
+        $result->free();
     } else {
         $db_status = 'sin tabla usuario';
     }
 
-    $stmt->close();
-    $connection->close();
+    // Cerrar esta conexión después de usarla
+    $test_connection->close();
 
 } catch (Exception $e) {
     $db_status = 'error: ' . $e->getMessage();
+    // Intentar cerrar la conexión si existe
+    if ($test_connection && !$test_connection->connect_error) {
+        $test_connection->close();
+    }
 }
 
+// Procesar el formulario de login
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $login_connection = null;
+    $stmt = null;
+    $result = null;
+
     try {
-        // Validar conexión
-        if ($connection->connect_error) {
-            throw new Exception("Error de conexión: " . $connection->connect_error);
+        // Crear una nueva conexión específica para el login
+        if (file_exists(__DIR__ . '/../.env')) {
+            $env = parse_ini_file(__DIR__ . '/../.env', false, INI_SCANNER_TYPED);
+            foreach ($env as $key => $value) {
+                $_ENV[$key] = $value;
+                putenv("$key=$value");
+            }
+        }
+
+        $db_config = [
+            'host' => $_ENV['DB_HOST'] ?? '172.20.1.7',
+            'user' => $_ENV['DB_USER'] ?? 'root',
+            'pass' => $_ENV['DB_PASSWORD'] ?? '1234567890',
+            'db' => $_ENV['DB_NAME'] ?? 'prime',
+            'port' => $_ENV['DB_PORT'] ?? 3306
+        ];
+
+        $login_connection = new mysqli(
+            $db_config['host'],
+            $db_config['user'],
+            $db_config['pass'],
+            $db_config['db'],
+            $db_config['port']
+        );
+
+        if ($login_connection->connect_error) {
+            throw new Exception("Error de conexión: " . $login_connection->connect_error);
         }
 
         $correo = $_POST['correo'] ?? '';
@@ -68,10 +116,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Validar credenciales
         $query = "SELECT id, nombre, contraseña FROM usuario WHERE correo = ? LIMIT 1";
-        $stmt = $connection->prepare($query);
+        $stmt = $login_connection->prepare($query);
 
         if (!$stmt) {
-            throw new Exception("Error en preparación: " . $connection->error);
+            throw new Exception("Error en preparación: " . $login_connection->error);
         }
 
         $stmt->bind_param("s", $correo);
@@ -87,23 +135,48 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['username'] = $usuario['nombre'];
                 $_SESSION['email'] = $correo;
 
+                // Limpiar recursos
+                $result->free();
+                $stmt->close();
+                $login_connection->close();
+
                 header("Location: index-admin.php");
                 exit();
             }
         }
 
-        // Invalid credentials
+        // Limpiar recursos
+        if ($result) {
+            $result->free();
+        }
+        if ($stmt) {
+            $stmt->close();
+        }
+        if ($login_connection) {
+            $login_connection->close();
+        }
+
+        // Credenciales inválidas
         header("Location: login-admin.php?error=1");
         exit();
 
     } catch (Exception $e) {
+        // Registrar el error
+        error_log("Error de login: " . $e->getMessage(), 3, __DIR__ . '/../logs/db_errors.log');
+
+        // Limpiar recursos
+        if ($result) {
+            $result->free();
+        }
+        if ($stmt) {
+            $stmt->close();
+        }
+        if ($login_connection) {
+            $login_connection->close();
+        }
+
         header("Location: login-admin.php?error=2");
         exit();
-    } finally {
-        // Clean up
-        if (isset($stmt)) $stmt->close();
-        $connection->close();
-
     }
 }
 ?>
