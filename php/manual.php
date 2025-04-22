@@ -7,6 +7,7 @@ include 'conexion.php';
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+     <link rel="icon" href="img/black-logo - copia.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manual de Usuario - Prime Instinct</title>
     <link rel="stylesheet" href="../src/css/style-admin.css">

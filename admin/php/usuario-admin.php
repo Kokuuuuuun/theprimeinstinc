@@ -1,4 +1,3 @@
-<!-- @format -->
 <?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
@@ -80,8 +79,6 @@ if (!isset($_SESSION['user_id'])) {
           <button id="add-user-btn" class="admin-btn">
           <i class="bx bx-plus"></i> Añadir Usuario
            </button>
-      </div>
-
       </div>
 
       <div class="users-table">

@@ -238,6 +238,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <link rel="icon" href="img/black-logo - copia.ico">
     <link rel="stylesheet" href="../src/css/login-admin.css">
     <title>Inicia sesión</title>
 </head>

@@ -1,6 +1,6 @@
 <?php
 // Conexión a la base de datos
-$conexion = mysqli_connect("localhost", "root", "", "prime");
+$conexion = mysqli_connect("172.20.1.7", "root", "1234567890", "prime");
 
 // Consultas para obtener totales
 $total_usuarios = mysqli_fetch_array(mysqli_query($conexion, "SELECT COUNT(*) as total FROM usuario"))[0];

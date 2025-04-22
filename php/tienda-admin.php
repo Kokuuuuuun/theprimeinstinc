@@ -110,11 +110,11 @@ if (!isset($_SESSION['user_id'])) {
             ?>
 
             <!-- Herramientas de diagnóstico -->
-            <div class="admin-tools" style="margin-top: 20px; text-align: center;">
+ <!--           <div class="admin-tools" style="margin-top: 20px; text-align: center;">
                 <p>
                     <a href="check_orders_table.php" style="display: inline-block; background-color: #007bff; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; margin-top: 10px;">Verificar tabla de pedidos</a>
                 </p>
-            </div>
+            </div> -->
         </div>
      </main>
      <footer>
