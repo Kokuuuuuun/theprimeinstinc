@@ -54,7 +54,7 @@ $pedidos_recientes = mysqli_query($conexion, "SELECT * FROM pedidos ORDER BY fec
                         <span class="username"><?php echo $_SESSION['username']; ?></span>
                         <span class="email"><?php echo $_SESSION['email']; ?></span>
                     </div>
-                    <a href="php/logout.php" class="logout-btn">Cerrar sesión</a>
+                    <a href="logout.php" class="logout-btn">Cerrar sesión</a>
                 </div>
             </div>
         </nav>
