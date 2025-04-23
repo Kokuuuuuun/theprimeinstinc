@@ -1,18 +1,20 @@
 <?php
-$conexion = mysqli_connect("172.20.1.7", "root", "1234567890", "prime");
-
-$total_usuarios = mysqli_fetch_array(mysqli_query($conexion, "SELECT COUNT(*) as total FROM usuario"))[0];
-$total_productos = mysqli_fetch_array(mysqli_query($conexion, "SELECT COUNT(*) as total FROM productos"))[0];
-$total_pedidos = mysqli_fetch_array(mysqli_query($conexion, "SELECT COUNT(*) as total FROM pedidos"))[0];
-
-$pedidos_recientes = mysqli_query($conexion, "SELECT * FROM pedidos ORDER BY fecha DESC LIMIT 5");
-?>
-<?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../../php/login-admin.php");
     exit();
 }
+
+// Conexión a la base de datos
+$conexion = mysqli_connect("172.20.1.7", "root", "1234567890", "prime");
+
+// Consultas para obtener totales
+$total_usuarios = mysqli_fetch_array(mysqli_query($conexion, "SELECT COUNT(*) as total FROM usuario"))[0];
+$total_productos = mysqli_fetch_array(mysqli_query($conexion, "SELECT COUNT(*) as total FROM productos"))[0];
+$total_pedidos = mysqli_fetch_array(mysqli_query($conexion, "SELECT COUNT(*) as total FROM pedidos"))[0];
+
+// Consulta para pedidos recientes
+$pedidos_recientes = mysqli_query($conexion, "SELECT * FROM pedidos ORDER BY fecha DESC LIMIT 5");
 ?>
 
 <!DOCTYPE html>
@@ -44,17 +46,17 @@ if (!isset($_SESSION['user_id'])) {
                 <a class="selected-link" href="dashboard.php">Dashboard</a>
             </div>
             <div class="user">
-          <div class="user-icon" id="user-icon">
-              <i class='bx bxs-user-circle' ></i>
-          </div>
-          <div class="user-dropdown" id="user-dropdown">
-              <div class="user-info">
-                  <span class="username"><?php echo $_SESSION['username']; ?></span>
-                  <span class="email"><?php echo $_SESSION['email']; ?></span>
-              </div>
-              <a href="logout.php" class="logout-btn">Cerrar sesión</a>
-          </div>
-      </div>
+                <div class="user-icon" id="user-icon">
+                    <i class='bx bxs-user-circle' ></i>
+                </div>
+                <div class="user-dropdown" id="user-dropdown">
+                    <div class="user-info">
+                        <span class="username"><?php echo $_SESSION['username']; ?></span>
+                        <span class="email"><?php echo $_SESSION['email']; ?></span>
+                    </div>
+                    <a href="php/logout.php" class="logout-btn">Cerrar sesión</a>
+                </div>
+            </div>
         </nav>
     </header>
 
@@ -125,21 +127,18 @@ if (!isset($_SESSION['user_id'])) {
              <a href="#">Aviso legal</a>
              <a href="#">Politica de privacidad</a>
              <a href="#">Términos y condiciones</a>
-            </ul>
           </div>
           <div class="footer-links">
              <h3>AYUDA</h3>
              <a href="#">Seguimiento de pedidos</a>
              <a href="#">Política de devoluciones</a>
              <a href="#">Preguntas frecuentes</a>
-            </ul>
           </div>
           <div class="footer-links">
              <h3>SOBRE NOSOTROS</h3>
              <a href="#">Nuestra historia</a>
              <a href="#">Blog</a>
              <a href="#">Feedbacks</a>
-            </ul>
           </div>
           <form class="newsletter">
             <h3>SUSCRIBTETE</h3>

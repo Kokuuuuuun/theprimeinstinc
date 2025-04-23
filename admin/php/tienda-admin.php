@@ -14,6 +14,52 @@ if (!isset($_SESSION['user_id'])) {
     <link rel="icon" href="../img/black-logo - copia.ico">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <title>Tienda</title>
+    <style>
+        /* Additional styles for admin-tools links */
+        .admin-tools {
+            margin-top: 20px;
+            text-align: center;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        }
+        .admin-tools h3 {
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            color: #333;
+        }
+        .admin-links {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        .admin-tool-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #444;
+            font-weight: 600;
+            background-color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .admin-tool-link i {
+            font-size: 1.4em;
+            color: #007bff;
+        }
+        .admin-tool-link:hover {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .admin-tool-link:hover i {
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -42,7 +88,7 @@ if (!isset($_SESSION['user_id'])) {
                   <span class="username"><?php echo $_SESSION['username']; ?></span>
                   <span class="email"><?php echo $_SESSION['email']; ?></span>
               </div>
-              <a href="logout.php" class="logout-btn">Cerrar sesión</a>
+              <a href="php/logout.php" class="logout-btn">Cerrar sesión</a>
           </div>
 
         <i id="cart-icon" class='bx bx-cart' ></i>
@@ -171,15 +217,29 @@ if (!isset($_SESSION['user_id'])) {
             mysqli_close($connection);
             ?>
 
-            <!-- Enlace para el diagnóstico -->
-            <div class="admin-tools" style="margin-top: 20px; text-align: center;">
-                <p>
-                    <a href="check_uploads_dir.php" style="margin-right: 10px;">Diagnóstico de imágenes</a>
-                    <a href="fix_image_paths.php" style="margin-right: 10px;">Reparar rutas de imágenes</a>
-                    <a href="fix_uploads_dir.php" style="margin-right: 10px;">Sincronizar directorios de uploads</a>
-                    <a href="check_orders_table.php">Verificar tabla de pedidos</a>
-                </p>
+            <!-- Enlaces para el diagnóstico y herramientas de administración -->
+            <div class="admin-tools">
+                <h3>Herramientas de Administración</h3>
+                <div class="admin-links">
+                    <a href="check_uploads_dir.php" class="admin-tool-link">
+                        <i class='bx bx-image'></i>
+                        <span>Diagnóstico de imágenes</span>
+                    </a>
+                    <a href="fix_image_paths.php" class="admin-tool-link">
+                        <i class='bx bx-link'></i>
+                        <span>Reparar rutas de imágenes</span>
+                    </a>
+                    <a href="fix_uploads_dir.php" class="admin-tool-link">
+                        <i class='bx bx-sync'></i>
+                        <span>Sincronizar directorios</span>
+                    </a>
+                    <a href="check_orders_table.php" class="admin-tool-link">
+                        <i class='bx bx-table'></i>
+                        <span>Verificar tabla de pedidos</span>
+                    </a>
+                </div>
             </div>
+
 
       </div>
      </main>
